@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../services/scheduler_service.dart';
+import '../services/services.dart';
 
 class JzStatefulWidget extends StatefulWidget {
   const JzStatefulWidget({Key? key}) : super(key: key);

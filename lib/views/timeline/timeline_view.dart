@@ -75,7 +75,7 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
         intervalWidth,);
 
     appointmentRenderService = AppointmentRenderService(pixelsPerMinute,
-        AnchorPosition.left, timeSlotSample, calendarRect, dayWidth, startDate,
+        AnchorPosition.left, timeSlotSample, calendarRect, dayWidth, startDate, null,
         fixedSize: true,);
 
     List<Widget>? renderAppointments() {
@@ -96,8 +96,10 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
       children: [
         NotificationListener<ScrollUpdateNotification>(
           onNotification: (notification) {
-            scheduler.setSchedulerScrollPos(notification.metrics.pixels);
-
+            var position = notification.metrics.pixels;
+            var positionOffset = notification.metrics.axis == Axis.vertical ? Offset(0, position) : Offset(position, 0);
+            scheduler.setSchedulerScrollPos(positionOffset);
+       
             return false;
           },
           child: Scrollbar(
@@ -120,8 +122,7 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
         ValueListenableBuilder(
           valueListenable: dataSource,
           builder: (BuildContext context, value, Widget? child) =>
-              ScrollAwareStack(
-            clientConstraints: constraints,
+              ScrollableStack(
             scrollController: _scrollController,
             children: [...?renderAppointments()],
           ),
@@ -147,7 +148,7 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
         groupDate,
         showDivider && groupDate == groupDate.startOfDay,
       ));
-      groupDate = incrementGroupDate(groupDate);
+      groupDate = incrementIntervalGroupDate(groupDate);
     }
 
     return Column(
@@ -180,7 +181,7 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
     List<Widget> groupHeadings = [];
 
     for (int i = 0; i < getGroupsPerPage(date); i++) {
-      DateTime groupDate = incrementGroupDate(date,
+      DateTime groupDate = incrementIntervalGroupDate(date,
           multiplier: i,); // date.startOfDay.addHours(i, true);
       groupHeadings.add(
         Column(children: [
@@ -206,7 +207,7 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
   Widget buildIntervalHeadings(DateTime date, bool showDivider) {
     List<Widget> intervalHeadings = [];
     for (int i = 0; i < getTimeBlockSize(); i++) {
-      DateTime intervalDate = incrementGroupDate(date,
+      DateTime intervalDate = incrementIntervalGroupDate(date,
           multiplier: i,
           isInterval:
               true,); //  date.addMinutes(widget.interval.value * i, true);
@@ -233,7 +234,7 @@ class _TimelineViewState extends State<TimelineView> with IntervalConfig {
     List<Widget> intervalCells = [];
     for (int i = 0; i < getTimeBlockSize(); i++) {
       GlobalKey globalKey = GlobalKey();
-      DateTime date = incrementGroupDate(groupDate,
+      DateTime date = incrementIntervalGroupDate(groupDate,
           multiplier: i,
           isInterval:
               true,); //  groupDate.addMinutes(widget.interval.value * i, true);

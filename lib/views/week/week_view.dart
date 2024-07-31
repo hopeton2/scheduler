@@ -15,6 +15,6 @@ class _WeekViewState extends State<WeekView> {
 
   @override
   Widget build(BuildContext context) {
-    return DayView(days: widget.days);
+    return DayView(dayCount: widget.days);
   }
 }

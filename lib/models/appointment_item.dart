@@ -15,6 +15,11 @@ class AppointmentItem {
   }
 
   Rect get rect => geometry.rect;
+
+  bool get isFirst => appointment.startDate == startDate;
+
+  bool get isLast => appointment.endDate == endDate;
+  
   set rect(Rect value) {
     geometry.rect = value;
   }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:scheduler/services/view_navigation_service.dart';
 
 import '../../constants.dart';
 import '../../scheduler.dart';
+import '../../services/services.dart';
 
 class PopupNavigationEx extends StatefulWidget {
   final Function(CalendarViewType viewType) selectView;
@@ -14,27 +14,19 @@ class PopupNavigationEx extends StatefulWidget {
 }
 
 class _PopupNavigationExState extends State<PopupNavigationEx> {
-  late CalendarViewType selectedViewType;
 
-  get selectionText => kViewCaptions[(kViewTypes.indexOf(selectedViewType))];
 
-  @override
-  void initState() {
-    selectedViewType = ViewNavigationService().viewType;
-    super.initState();
-  }
+  get selectionText => kViewCaptions[(kViewTypes.indexOf(viewNavigationService.viewType))];
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<CalendarViewType>(
-      tooltip: "View selection",
-      child: DropdownSelector(selectionText, !widget.showSelection),
-      initialValue: selectedViewType,
+      tooltip: kViewSelectionCaption,
+      initialValue: viewNavigationService.viewType,
       onSelected: (CalendarViewType viewType) {
-        setState((){
-          selectedViewType = viewType;
+        //setState((){
           widget.selectView(viewType);
-        });
+       // });
       },
       itemBuilder: (BuildContext context) => kViewTypes.map((viewType) {
         return PopupMenuItem(
@@ -42,6 +34,7 @@ class _PopupNavigationExState extends State<PopupNavigationEx> {
           child: Text(kViewCaptions[(kViewTypes.indexOf(viewType))]),
         );
       }).toList(),
+      child: DropdownSelector(selectionText, !widget.showSelection),
     );
   }
 }

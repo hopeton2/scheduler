@@ -8,7 +8,6 @@ import 'package:scheduler/models/appointment_item.dart';
 import 'package:scheduler/scheduler.dart';
 import 'package:scheduler/services/scheduler_service.dart';
 
-import '../common/event_args.dart';
 
 class AppointmentService with ChangeNotifier {
   static final AppointmentService instance = AppointmentService._internal();
@@ -28,7 +27,16 @@ class AppointmentService with ChangeNotifier {
       _suspendAnimation = value;
       return;
     }
-    Timer(const Duration(seconds:1), ()=>{ _suspendAnimation = false} );
+    Timer(const Duration(seconds:1), () => _suspendAnimation = false);
+  }
+
+
+  List<AppointmentItem> getAppointmentItemsByDateRange(Appointment appointment, DateTime first, DateTime last) {
+    List<AppointmentItem> result = [];
+    var start = first.isBefore(appointment.startDate) ? appointment.startDate : first;
+    var end = last.isAfter(appointment.endDate) ? appointment.endDate : last;
+    result.add(AppointmentItem(appointment, start, end));
+    return result;
   }
 
   List<AppointmentItem> getAppointmentItemsByDay(Appointment appointment) {
@@ -54,11 +62,12 @@ class AppointmentService with ChangeNotifier {
     var end = appointment.endDate;
     int weekCount = start.getDifferenceInCalendarWeeks(end);
     for (int i = 0; i <= weekCount; i++) {
-      end = start.isSameWeek(end) ? end : start.endOfDay;
+      end = start.isSameWeek(end) ? end : start.endOfWeek.subtract(const Duration(milliseconds: 1));
       result.add(AppointmentItem(appointment, start, end));
-      start = start.incWeeks(1).startOfDay;
+      start = start.incWeeks(1).startOfWeek;
       end = appointment.endDate;
     }
+
     return result;
   }
 
@@ -98,3 +107,5 @@ class AppointmentService with ChangeNotifier {
     }
   }
 }
+
+AppointmentService appointmentService = AppointmentService.instance;

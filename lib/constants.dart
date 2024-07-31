@@ -17,6 +17,8 @@ const kViewTimelineMonthCaption = 'TIMELINE MONTH';
 const kViewTimelineQuarterCaption = 'TIMELINE QUARTER';
 const kViewYearCaption = 'YEAR';
 const kViewAgendaCaption = 'AGENDA';
+const kViewSelectionCaption =  'Select a view...';
+const kTodayCaption = 'Today';
 
 const kViewTypes = <CalendarViewType>[
   CalendarViewType.day,

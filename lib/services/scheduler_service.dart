@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/widgets.dart';
 import 'package:scheduler/scheduler.dart';
 
@@ -20,6 +22,12 @@ class SchedulerService {
   TimelineViewSettings get timelineViewSettings => scheduler.timelineViewSettings;
   AppointmentSettings get appointmentSettings => scheduler.appointmentSettings;
   BuildContext? currentContext;
+  ScrollController? scrollController;
+
+  scrollScheduler(double scrollBy) {
+    if (scrollController != null && scrollController!.positions.isNotEmpty) {
+      scrollController!.jumpTo(max(0,scrollController!.offset + scrollBy));
+    }
+  }
 }
 
-SchedulerService get schedulerService => SchedulerService.instance;

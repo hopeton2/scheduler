@@ -23,8 +23,10 @@ class SchedulerDataSource extends ChangeNotifier implements ValueListenable<List
       return appointments;
     }
 
-    return appointments.where((a) => visibleDateRange.inRange(a.startDate) ||
-        visibleDateRange.inRange(a.endDate)).toList();
+    /* return appointments.where((a) => visibleDateRange.inRange(a.startDate) ||
+        visibleDateRange.inRange(a.endDate)).toList(); */
+
+     return appointments.where((a) => visibleDateRange.inRangeOrBetween(a.startDate, a.endDate)).toList();
   }
 
   List<AppointmentItem> get visibleAppointmentItems {
@@ -44,12 +46,17 @@ class SchedulerDataSource extends ChangeNotifier implements ValueListenable<List
     });
   }
 
+  List<AppointmentItem> visibleAppointmentItemsByDateRange(DateTime first, DateTime last) {
+    return getVisibleAppointmentItemsFrom((appointment) => appointmentService.getAppointmentItemsByDateRange(appointment, first, last));
+  }
+
   List<AppointmentItem> get visibleAppointmentItemsByDay {
     return getVisibleAppointmentItemsFrom((appointment) => appointment.appointmentItemsByDay);
   }
 
   List<AppointmentItem> get visibleAppointmentItemsByWeek {
-    return getVisibleAppointmentItemsFrom((appointment) => appointment.appointmentItemsByWeek);
+    var result = getVisibleAppointmentItemsFrom((appointment) => appointment.appointmentItemsByWeek);
+    return result;
   }
 
   List<AppointmentItem> get visibleAppointmentItemsByMonth {
@@ -74,10 +81,24 @@ class SchedulerDataSource extends ChangeNotifier implements ValueListenable<List
   }
 
 
-  addAppointment(DateTime startDate, Duration duration, String subject, {Color color = const Color(0xff757575)}){
-    Appointment appointment = Appointment(startDate.toLocalTime, startDate.toLocalTime.add(duration), subject, color: color);
+  addAppointment(DateTime startDate, Duration duration, String subject, {Color color = const Color(0xff757575), isAllDay = false}){
+    Appointment appointment;
+    if (isAllDay){
+      appointment = Appointment(startDate.toLocalTime.startOfDay, startDate.startOfDay.toLocalTime.add(duration).endOfDay, subject, color: color, isAllDay: isAllDay);
+
+    }
+    else {
+      appointment = Appointment(startDate.toLocalTime, startDate.toLocalTime.add(duration), subject, color: color);
+    }
+    appointment.subject =  "$subject ${appointment.startDate} - ${appointment.endDate}";
     appointments.add(appointment);
     notifyListeners();
+  }
+
+  addAllDayAppointment(DateTime startDate, String subject, {Color color = const Color(0xff757575), int days = 1}){
+    startDate = startDate.startOfDay;
+    Duration duration = Duration(days: days-1);
+    addAppointment(startDate, duration, subject, color: color, isAllDay: true);
   }
 
   deleteAppointment(Appointment appointment) {
@@ -85,8 +106,17 @@ class SchedulerDataSource extends ChangeNotifier implements ValueListenable<List
     notifyListeners();
   }
 
-  rescheduleAppointment(Appointment appointment, DateTime startDate, DateTime endDate) {
+  rescheduleAppointment(Appointment appointment, DateTime startDate, DateTime endDate, bool isAllDay) {
+    if (appointment.isAllDay && isAllDay == false){
+      endDate = startDate.add(schedulerService.appointmentSettings.defaultDuration);
+    }
+    if (isAllDay){
+      startDate = startDate.startOfDay;
+      endDate = endDate.endOfDay;
+    }
     appointment.setDates(startDate, endDate);
+    appointment.isAllDay = isAllDay;
+    appointment.subject =  "${appointment.startDate} - ${appointment.endDate}";
     notifyListeners();
   }
 

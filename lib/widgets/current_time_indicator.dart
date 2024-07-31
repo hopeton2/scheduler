@@ -48,9 +48,9 @@ class CurrentTimeIndicator extends StatelessWidget {
       builder: (BuildContext context, DateTime value, Widget? child) =>
           ValueListenableBuilder(
         valueListenable: scheduler.schedulerScrollPosNotify,
-        builder: (BuildContext context, double scrollPos, Widget? child) =>
+        builder: (BuildContext context, Offset scrollPos, Widget? child) =>
             Positioned(
-          top: getPosition(value.totalMinutes) - 6 - Scheduler.currentScrollPos,
+          top: getPosition(value.totalMinutes) - 6 - Scheduler.currentScrollPos.dy,
           left: startPos,
           child: SizedBox(
             width: max(0, activeLength + activePos - startPos),

@@ -1,10 +1,10 @@
 part of scheduler;
 
 class DayView extends StatefulWidget {
-  final int days;
+  final int dayCount;
   const DayView({
     Key? key,
-    this.days = 1,
+    this.dayCount = 1,
   }) : super(key: key);
 
   @override
@@ -12,14 +12,27 @@ class DayView extends StatefulWidget {
 }
 
 class _DayViewState extends State<DayView> with IntervalConfig {
+  double timebarWidth = schedulerService.dayViewSettings.timebarFullWidth;
+  late int interval;
+  late int slotsPerHour;
+  late int intervalCount;
+
   late SchedulerSettings schedulerSettings;
   late DayViewSettings dayViewSettings;
+  late GridHelper gridService;
 
   @override
   void initState() {
-    intervalMinute = SchedulerService().dayViewSettings.intervalMinute;
-    schedulerSettings = SchedulerService().schedulerSettings; // Scheduler.of(context).schedulerSettings;
-    dayViewSettings = SchedulerService().dayViewSettings; // Scheduler.of(context).dayViewSettings;
+    intervalMinute = SchedulerService.instance.dayViewSettings.intervalMinute;
+    schedulerSettings = SchedulerService.instance.schedulerSettings;
+    dayViewSettings = SchedulerService.instance.dayViewSettings;
+    interval = schedulerService.dayViewSettings.intervalMinute.value;
+    slotsPerHour = 60 ~/ interval;
+    intervalCount = slotsPerHour * 24;
+    gridService = GridHelper(
+      incrementRowDate: (int rowIndex) =>
+          startDate.addMinutes((60 ~/ slotsPerHour) * rowIndex),
+    );
     super.initState();
   }
 
@@ -32,80 +45,91 @@ class _DayViewState extends State<DayView> with IntervalConfig {
   Widget build(BuildContext context) {
     return Material(
       child: SchedulerView(
-        viewBuilder: (BuildContext context, BoxConstraints constraints) => buildView(constraints),
+        viewBuilder: (BuildContext context, BoxConstraints constraints) =>
+            buildView(constraints),
       ),
     );
   }
 
+  
   Widget buildView(BoxConstraints constraints) {
     return VirtualPageView(
       initialDate: startDate,
-      itemBuilder: (BuildContext context, pageDate,_) =>
-          Column(
-            children: [
-              Container(
-                color: schedulerSettings.headerBackgroundColor,
-                child: IntrinsicHeight(
-                  child: Row(
-                    children: buildDayHeaders(
-                      pageDate,
-                      constraints.maxWidth,
-                    ),
-                  ),
+      itemBuilder: (BuildContext context, pageDate, index) => Column(
+        children: [
+          Container(
+            color: schedulerSettings.headerBackgroundColor,
+            child: IntrinsicHeight(
+              child: Row(
+                children: buildDayHeaders(
+                  pageDate,
+                  constraints.maxWidth,
                 ),
               ),
-              Expanded(
-                child: LayoutBuilder(
-                  builder: (BuildContext context, BoxConstraints constraints) {
-                    double height = constraints.maxHeight;
-                    int interval = schedulerService.dayViewSettings.intervalMinute.value;
-                    int slotsPerHour = 60 ~/ interval;
-                    int intervalCount = slotsPerHour * 24;
-                    double intervalHeight = max(
-                      schedulerService.dayViewSettings.intervalMinHeight,
-                      height / intervalCount,
-                    ).ceilToDouble();
-
-                    return Container (
-                      color: schedulerSettings.backgroundColor,
-                      child: EventGrid(
-                        date: pageDate,
-                        days: widget.days,
-                        constraints: constraints,
-                        intervalHeight: intervalHeight,
-                        intervalWidth: 0,
-                        showCurrentTimeIndicator: true,
-                        orientation: Axis.vertical,
-                        intervalType: IntervalType.minute,
-                        headerThickness: dayViewSettings.timebarFullWidth,
-                        calendarViewType: CalendarViewType.day,
-                     ),
-                    );
-
-                    return Container(
-                        color: schedulerSettings.backgroundColor,
-                        child: DayEventGrid(
-                          key: GlobalKey(),
-                          date: pageDate,
-                          days: widget.days,
-                          //scrollController: scrollController,
-                          constraints: constraints,
-                        ),
-                      );
-                     },
-                ),
-              ),
-            ],
+            ),
           ),
-    );
+           AlldayEventGrid(
+            backgroundColor: Colors.black45,
+            colCount: widget.dayCount,
+            startDate: pageDate,
+            constraints: constraints,
+            timebarWidth: dayViewSettings.timebarFullWidth,
+            intervalType: IntervalType.day,
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                double height = constraints.maxHeight;
+                double intervalHeight = max(
+                  schedulerService.dayViewSettings.intervalMinHeight,
+                  height / intervalCount,
+                ).ceilToDouble();
 
+                return Container(
+                  color: schedulerSettings.backgroundColor,
+                  child: EventGrid(
+                    key: UniqueKey(),
+                    isAllDayHost: true,
+                    gridHelper: gridService,
+                    cellHeaderBuilder:
+                        (BuildContext context, DateTime date, int index) {
+                      return TimebarCell(
+                        rowIndex: index,
+                        colIndex: 0,
+                        direction: Axis.vertical,
+                        size: Size(timebarWidth, intervalHeight),
+                        date: date,
+                        intervalBlockSize: slotsPerHour,
+                      );
+                    },
+                    getVisibleAppointments: ()=> schedulerService
+                        .scheduler.dataSource!.visibleAppointmentItemsByDay.where((element) => !element.appointment.isAllDay).toList(),
+                    date: pageDate,
+                    dayCount: widget.dayCount,
+                    constraints: constraints,
+                    intervalHeight: intervalHeight,
+                    intervalWidth: 0,
+                    showCurrentTimeIndicator: true,
+                    orientation: Axis.vertical,
+                    intervalType: IntervalType.minute,
+                    rowHeaderWidth: dayViewSettings.timebarFullWidth,
+                    calendarViewType: CalendarViewType.day,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   List<Widget> buildDayHeaders(DateTime initialDate, double maxWidth) {
     List<Widget> result = [];
-    var dayWidth = (maxWidth - dayViewSettings.timebarFullWidth) / widget.days;
+    var dayWidth =
+        (maxWidth - dayViewSettings.timebarFullWidth) / widget.dayCount;
     //DateTime initialDate = startDate;
-    for (int i = 0; i < widget.days; i++) {
+    for (int i = 0; i < widget.dayCount; i++) {
       DateTime date = initialDate.incDays(i);
 
       //-- all day
@@ -137,7 +161,7 @@ class _DayViewState extends State<DayView> with IntervalConfig {
               color: schedulerSettings.timebarBackgroundColor,
               height: 5,
               width: dayViewSettings.timebarWidth,
-            ), */// extra margin
+            ), */ // extra margin
           ],
         ));
       }
@@ -158,12 +182,13 @@ class _DayViewState extends State<DayView> with IntervalConfig {
               ),
             ),
             DateHeader(
-                headerType: DateHeaderType.allDay,
-                date: date,
-                width: dayWidth,
-                height: 20,
-                showDivider: true,),
-        /*    DateHeader(
+              headerType: DateHeaderType.allDay,
+              date: date,
+              width: dayWidth,
+              height: 20,
+              showDivider: true,
+            ),
+            /*    DateHeader(
                 //not really an allday header; spacer to give the first time (12 AM) in the ruler a margin at the top
                 headerType: DateHeaderType.allDay,
                 date: date,
@@ -171,10 +196,12 @@ class _DayViewState extends State<DayView> with IntervalConfig {
                 height: 5,
                 backgroundColor: schedulerSettings.backgroundColor,
                 showDivider: true)
-*/          ],
+*/
+          ],
         ),
       );
     }
+
     return result;
   }
 }

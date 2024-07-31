@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../common/context_holder.dart';
-import '../../../services/scheduler_service.dart';
+import '../../../services/services.dart';
+import '../cell_painter.dart';
 import '../grid_cell.dart';
 
 class TimebarCell extends GridCell {
@@ -16,6 +17,7 @@ class TimebarCell extends GridCell {
     super.date,
     super.dateFormat,
     super.showLines = false,
+    super.showDashLines = false,
     required super.size,
   });
 

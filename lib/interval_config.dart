@@ -62,9 +62,8 @@ mixin IntervalConfig {
           SchedulerService().schedulerSettings.firstDayOfWorkWeek,
         );
       case CalendarViewType.timelineMonth:
-        return date.startOfMonth;
       case CalendarViewType.month:
-        return date.startOfMonth.startOfWeek;
+        return date.startOfMonth;
       case CalendarViewType.year:
         return date.startOfYear;
       case CalendarViewType.quarter:
@@ -217,7 +216,7 @@ mixin IntervalConfig {
     return result;
   }
 
-  DateTime incrementPageDate(DateTime date, {multiplier = 1}) {
+  DateTime incrementPageDate(DateTime date, {int multiplier = 1}) {
     switch (viewType) {
       case CalendarViewType.timelineDay:
       case CalendarViewType.day:
@@ -230,7 +229,7 @@ mixin IntervalConfig {
         return date.incDays(multiplier * 7);
       case CalendarViewType.timelineMonth:
       case CalendarViewType.month:
-        return date.incMonths(multiplier);
+        return date.startOfMonth.addMonths(multiplier);
       case CalendarViewType.year:
         return date.incYears(multiplier);
       case CalendarViewType.quarter:
@@ -240,10 +239,10 @@ mixin IntervalConfig {
     }
   }
 
-  DateTime incrementGroupDate(
+  DateTime incrementIntervalGroupDate(
     DateTime groupDate, {
     int multiplier = 1,
-    bool isInterval = false,
+    bool isInterval = false, //--when true it is not treated as a group
   }) {
     DateTime result;
     switch (viewType) {
@@ -260,17 +259,17 @@ mixin IntervalConfig {
       case CalendarViewType.timelineWorkWeek:
       case CalendarViewType.week:
       case CalendarViewType.workWeek:
-        result = groupDate.startOfDay.incDays(1 * multiplier);
+        result = groupDate.startOfDay.incDays(multiplier);
         break;
       case CalendarViewType.timelineMonth:
       case CalendarViewType.month:
-        result = groupDate.startOfDay.incDays(1 * multiplier);
+        result = groupDate.startOfDay.incDays(multiplier);
         break;
       case CalendarViewType.year:
-        result = groupDate.startOfDay.incMonths(1 * multiplier);
+        result = groupDate.startOfDay.incMonths(multiplier);
         break;
       case CalendarViewType.quarter:
-        result = groupDate.startOfDay.incMonths(1 * multiplier);
+        result = groupDate.startOfDay.incMonths(multiplier);
         break;
       default:
         result = groupDate.incMinutes(

@@ -30,7 +30,7 @@ class _AppointmentResizerState extends State<AppointmentResizer> with OverlayMix
   MouseCursor sizerCursor = SystemMouseCursors.none;
 
   bool _sizing = false;
-  bool get sizing => _sizing;
+  bool get sizing => _sizing && mounted;
 
   set sizing(bool value) {
     if (value != _sizing) {

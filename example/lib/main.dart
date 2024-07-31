@@ -23,7 +23,8 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Iterable<ThemeExtension<dynamic>> getThemeExtensions() {
-    return [AppMonthViewTheme()];
+    //return [AppMonthViewTheme()];
+    return [];
   }
 
   @override
@@ -41,7 +42,7 @@ class _MyAppState extends State<MyApp> {
         // home: SafeArea(child: jzDayView())
         // home: SafeArea(child: jzWeekView())
         //  home: SafeArea(child: Scheduler(view: TimelineView(pages: 5, calendarType: CalendarType.month, intervalMinute: IntervalMinute.min15)))
-        home: SafeArea(child: JzScheduler(dataSource: getDataSource(), viewType: CalendarViewType.week,
+        home: SafeArea(child: JzScheduler(dataSource: getDataSource(), viewType: CalendarViewType.week,  initialDate: DateTime.now(),
              schedulerSettings: const SchedulerSettings(
  //           locale: 'Ja_Jp'
 /*            headerBackgroundColor: Colors.white,
@@ -52,7 +53,7 @@ class _MyAppState extends State<MyApp> {
               locale: 'ja_JP'*/
           ),
           dayViewSettings: const DayViewSettings(
-            intervalMinute: IntervalMinute.min60,
+            intervalMinute: IntervalMinute.min30,
             headerStyleName: 'dayStyle3',
             showMinutes: true,
           ),
@@ -66,18 +67,29 @@ class _MyAppState extends State<MyApp> {
   SchedulerDataSource getDataSource() {
     SchedulerDataSource result = SchedulerDataSource();
     int year = DateTime.now().year;
-    int month = DateTime.now().minute;
+    int month = DateTime.now().month;
     int lastMonth = month -1;
 
-    DateTime today = DateTime.now().startOfDay.addHours(9);
-    result.addAppointment(today, const Duration(minutes: 120), "Morning meeting with India", color: ColorsExt.random);
+    DateTime today = DateTime.now().startOfDay.addHours(2);
+    result.addAllDayAppointment(today, "This is all day", color: ColorsExt.random);
+    result.addAllDayAppointment(today, "This is another all day - 3 days", color: ColorsExt.random, days: 3);
+    
+
+    result.addAppointment(today.addMonths(-1), const Duration(minutes: 120), "last month", color: Colors. red);
+
+    result.addAppointment(today, const Duration(days: 5), "Morning meeting with India", color: ColorsExt.random);
+
     result.addAppointment(today.addDays(1), const Duration(minutes: 220), "Breakfast", color: ColorsExt.random);
     result.addAppointment(today.addDays(2), const Duration(minutes: 220), "Breakfast 2", color: ColorsExt.random);
     result.addAppointment(today.addHours(4), const Duration(minutes: 220), "Workout", color: ColorsExt.random);
     result.addAppointment(today, const Duration(minutes: 80), "test red", color: ColorsExt.random);
     result.addAppointment(today, const Duration(minutes: 180), "test blue", color: ColorsExt.random);
+    result.addAppointment(today, const Duration(days: 2), "Multiple Days", color: ColorsExt.random);
 
-/*    result.addAppointment(today, const Duration(minutes: 120), "Morning meeting with India", color: ColorsExt.random);
+    //return result;
+    result.addAllDayAppointment(today, "This is all day", color: ColorsExt.random);
+    result.addAllDayAppointment(today, "This is another all day", color: ColorsExt.random, days: 3);
+    result.addAppointment(today, const Duration(minutes: 120), "Morning meeting with India", color: ColorsExt.random);
     result.addAppointment(today.addDays(1), const Duration(minutes: 220), "Breakfast", color: ColorsExt.random);
     result.addAppointment(today.addDays(2), const Duration(minutes: 220), "Breakfast", color: ColorsExt.random);
     result.addAppointment(today.addHours(4), const Duration(minutes: 220), "Workout", color: ColorsExt.random);
@@ -89,7 +101,7 @@ class _MyAppState extends State<MyApp> {
     result.addAppointment(today.addDays(2), const Duration(minutes: 220), "Breakfast", color: ColorsExt.random);
     result.addAppointment(today.addHours(4), const Duration(minutes: 220), "Workout", color: ColorsExt.random);
     result.addAppointment(today, const Duration(minutes: 80), "test red", color: ColorsExt.random);
-    result.addAppointment(today, const Duration(minutes: 180), "test blue", color: ColorsExt.random);*/
+    result.addAppointment(today, const Duration(minutes: 180), "test blue", color: ColorsExt.random);
 
     result.addAppointment(DateTime(year,month,14,3,0), const Duration(minutes: 120), "test 1", color: ColorsExt.random);
     result.addAppointment(DateTime(year,month,14,2,45), const Duration(minutes: 180), "test 5", color: ColorsExt.random);

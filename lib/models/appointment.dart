@@ -44,6 +44,9 @@ class Appointment {
     }
   }
 
+  get shortSummary => "${DateFormat("yyyy-MM-dd").format(startDate)} to ${DateFormat("yyyy-MM-dd").format(endDate)}";
+  get longSummary => '$subject - ${startDate.toIso8601String()} - ${endDate.toIso8601String()}';
+
   _generateAppointmentItems() {
     appointmentItems.clear();
     appointmentItemsByWeek.clear();

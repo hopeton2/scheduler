@@ -14,6 +14,7 @@ class AppointmentSettings {
   final Duration selectionDelay;
   final Duration animationDuration;
   final bool hapticFeedbackOnLongPressSelection;
+  final Duration defaultDuration;
 
   const AppointmentSettings({
     this.defaultColor = Colors.grey,
@@ -29,6 +30,7 @@ class AppointmentSettings {
     this.selectionDelay = kLongPressTimeout,
     this.dragDelay =  kLongPressTimeout,
     this.animationDuration = const Duration(seconds: 1),
+    this.defaultDuration = const Duration(minutes: 30),
   });
 
   getHoverBorderColor(BuildContext context) {

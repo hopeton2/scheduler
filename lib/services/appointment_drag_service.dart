@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:scheduler/scheduler.dart';
 
+import 'appointment_render_service.dart';
 import 'appointment_service.dart';
 
 enum DragMode {

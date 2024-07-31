@@ -4,6 +4,7 @@ import 'package:dart_date/dart_date.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/scheduler_service.dart';
+import '../services/services.dart';
 import '../services/view_navigation_service.dart';
 import '/extensions/date_extensions.dart';
 import '/scheduler.dart';
@@ -68,21 +69,30 @@ class _DateHeaderState extends State<DateHeader> {
     schedulerSettings = schedulerService.scheduler.schedulerSettings;
     viewType = ViewNavigationService().viewType;
     var width = widget.width ?? 0;
-    var height = widget.height ?? 0;
-    return ValueListenableBuilder(
-      valueListenable: schedulerService.scheduler.clockTickNotify,
-      builder: (BuildContext context, value, Widget? child) =>
-      Container(
-          padding: widget.padding,
-          decoration: widget.decoration ?? BoxDecoration(color: getHeaderColor(),
-              border: !widget.showDivider ? null : Border(
-                  left: BorderSide(
-                      color: schedulerSettings.getDividerLineColor(context),
-                      width: schedulerSettings.dividerLineWidth))),
-          height: widget.height,
-          width: max(0,width),
-          child: !widget.dateVisible ? null : widget.headerType == DateHeaderType.allDay ? null : widgetOfStyle() ??
-                dateText(format: widget.dateFormat,  circleCurrentDate: widget.circleWhenNow)),
+
+
+    return Listener(
+      onPointerDown: (PointerDownEvent event) {
+        if (widget.headerType == DateHeaderType.day) {
+          schedulerService.scheduler.controller.canSelectAndJumpToDayView = true;
+          schedulerService.scheduler.controller.selectInOneDay(widget.date);
+        }
+      },
+      child: ValueListenableBuilder(
+        valueListenable: schedulerService.scheduler.clockTickNotify,
+        builder: (BuildContext context, value, Widget? child) =>
+        Container(
+            padding: widget.padding,
+            decoration: widget.decoration ?? BoxDecoration(color: getHeaderColor(),
+                border: !widget.showDivider ? null : Border(
+                    left: BorderSide(
+                        color: schedulerSettings.getDividerLineColor(context),
+                        width: schedulerSettings.dividerLineWidth,),),),
+            height: widget.height,
+            width: max(0,width),
+            child: !widget.dateVisible ? null : widget.headerType == DateHeaderType.allDay ? null : widgetOfStyle() ??
+                  dateText(format: widget.dateFormat,  circleCurrentDate: widget.circleWhenNow),),
+      ),
     );
   }
 
@@ -101,6 +111,7 @@ class _DateHeaderState extends State<DateHeader> {
     } else if (widget.style == 'dayStyle3') {
       return dayStyle3();
     }
+
     return null;
   }
 
@@ -108,8 +119,8 @@ class _DateHeaderState extends State<DateHeader> {
      return SizedBox(
        child: Column(children:[
           dateText(format: widget.date.isFirstDayOfMonth || widget.isFirstInSeries
-              ? DateFormat.ABBR_MONTH_DAY : DateFormat.DAY, size: 30),
-          dateText(format: DateFormat.WEEKDAY, size: 11)
+              ? DateFormat.ABBR_MONTH_DAY : DateFormat.DAY, size: 30,),
+          dateText(format: DateFormat.WEEKDAY, size: 11),
        ]),
      );
   }
@@ -117,7 +128,7 @@ class _DateHeaderState extends State<DateHeader> {
   Widget dayStyle2() {
     return Column(children:[
       dateText(format: DateFormat.DAY, size: 25, circleCurrentDate: true),
-      dateText(format: DateFormat.WEEKDAY, size: 12,  matchFontColorWhenSelected: true)
+      dateText(format: DateFormat.WEEKDAY, size: 12),
     ]);
   }
 
@@ -125,14 +136,14 @@ class _DateHeaderState extends State<DateHeader> {
     return Column(
       // crossAxisAlignment: CrossAxisAlignment.start,
       children:[dateText(formattedDate: widget.date.responsiveDayName(DateFormat.ABBR_WEEKDAY,
-          context, viewType == CalendarViewType.day).toUpperCase(),
-          size: 13, matchFontColorWhenSelected: true),
-      dateText(format: DateFormat.DAY, size: 22, circleCurrentDate: true)
-    ]);
+          context, viewType == CalendarViewType.day,).toUpperCase(),
+          size: 13,),
+      dateText(format: DateFormat.DAY, size: 22, circleCurrentDate: true),
+    ],);
   }
 
   Widget dateText({String? format, double? size, bool circleCurrentDate = false,
-    bool matchFontColorWhenSelected = false, String? formattedDate}) {
+     String? formattedDate,}) {
     String text = formattedDate ?? DateFormat(format).format(widget.date);
     ThemeData theme = Theme.of(context);
 
@@ -144,7 +155,7 @@ class _DateHeaderState extends State<DateHeader> {
               overflow: TextOverflow.ellipsis,
               color: getFontColor(forCircle ? theme.colorScheme.onPrimary : theme.colorScheme.primary), //widget.isLongText || !circleCurrentDate || matchFontColorWhenSelected),
               fontSize: size ?? widget.fontSize,
-              fontFamily: schedulerSettings.fontFamily)
+              fontFamily: schedulerSettings.fontFamily,),
       );
     }
 
@@ -155,12 +166,12 @@ class _DateHeaderState extends State<DateHeader> {
           ? Padding(
             padding: const EdgeInsets.only(top: 3),
             child: CircleAvatar(backgroundColor: getCircleColor() ,
-            radius: 18, child: headerText(true)),
+            radius: 18, child: headerText(true),),
           )
           : Padding(
             padding: const EdgeInsets.only(top: 6),
             child: headerText(),
-          )
+          ),
     );
   }
 
@@ -168,6 +179,7 @@ class _DateHeaderState extends State<DateHeader> {
     if (isCurrentDate()) {
       return schedulerSettings.currentDateBackgroundColor ?? Theme.of(context).colorScheme.primary;
     }
+
     return Colors.transparent;
   }
 
@@ -180,6 +192,7 @@ class _DateHeaderState extends State<DateHeader> {
     if (dateCurrent) {
       result = schedulerSettings.currentDateFontColor ?? themeColor; // useBackground ? schedulerSettings.currentDateBackgroundColor : schedulerSettings.currentDateFontColor;
     }
+
     return result;
   }
 
@@ -210,6 +223,7 @@ class _DateHeaderState extends State<DateHeader> {
       default:
         isCurrentDate = false;
     }
+
     return isCurrentDate;
   }
 }

@@ -41,6 +41,9 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
     curve: Curves.easeIn,
   );
 
+  get isLast => widget.appointmentItem.isLast;
+  get isFirst => widget.appointmentItem.isFirst;
+
 
   bool _isHovered = false;
   Appointment get appointment {
@@ -84,51 +87,25 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
     longPressTimer = null;
   }
 
-  get isFirstInSeries {
-    return appointment.appointmentItemsByDay.length > 1 && appointment.appointmentItemsByDay.first == widget.appointmentItem;
-  }
-
-  get isLastInSeries {
-    return appointment.appointmentItemsByDay.length > 1 && appointment.appointmentItemsByDay.last == widget.appointmentItem;
-  }
-
+  
   BorderRadius borderRadius(Radius? cornerRadius) {
     Radius borderRadius = cornerRadius ?? const Radius.circular(4);
-    //if (appointment.appointmentItemsByDay.length == 1) {
-
-      return BorderRadius.all(borderRadius);
-    //}
-    Radius topLeft = borderRadius;
-    Radius topRight = borderRadius;
-    Radius bottomLeft = borderRadius;
-    Radius bottomRight = borderRadius;
-
-    if (widget.orientation == FlowOrientation.vertical) {
-      if (widget.appointmentItem != appointment.appointmentItemsByDay.last) {
-        bottomLeft = const Radius.circular(0);
-        bottomRight = const Radius.circular(0);
-      }
-      if (widget.appointmentItem != appointment.appointmentItemsByDay.first) {
-        topLeft = const Radius.circular(0);
-        topRight = const Radius.circular(0);
-      }
-    } else {
-      if (widget.appointmentItem != appointment.appointmentItemsByDay.last) {
-        topRight = const Radius.circular(0);
-        bottomRight = const Radius.circular(0);
-      }
-      if (widget.appointmentItem != appointment.appointmentItemsByDay.first) {
-        topLeft = const Radius.circular(0);
-        bottomLeft = const Radius.circular(0);
+    BorderRadiusGeometry result = BorderRadius.all(borderRadius);
+    if (!isFirst) {
+      if (widget.orientation == FlowOrientation.vertical) {
+        result = result.subtract(BorderRadius.only(topLeft: borderRadius, topRight: borderRadius));
+      } else {
+        result = result.subtract(BorderRadius.only(topLeft: borderRadius, bottomLeft: borderRadius));
       }
     }
-
-    return BorderRadius.only(
-      topLeft: topLeft,
-      topRight: topRight,
-      bottomLeft: bottomLeft,
-      bottomRight: bottomRight,
-    );
+    if (!isLast) {
+      if (widget.orientation == FlowOrientation.vertical) {
+        result = result.subtract(BorderRadius.only(bottomLeft: borderRadius, bottomRight: borderRadius));
+      } else {
+        result = result.subtract(BorderRadius.only(topRight: borderRadius, bottomRight: borderRadius));
+      }
+    }
+    return result as BorderRadius;
   }
 
   BorderSide openBorder(bool isDragging) {
@@ -157,79 +134,10 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
         color = settings.getHoverBorderColor(context);
       }
     }
-    //if (appointment.appointmentItemsByDay.length == 1) {
-
-      return Border.all(width: width, color: color);
-   // }
-
-    BorderSide topSide = BorderSide(width: width, color: color);
-    BorderSide rightSide = BorderSide(width: width, color: color);
-    BorderSide bottomSide = BorderSide(width: width, color: color);
-    BorderSide leftSide = BorderSide(width: width, color: color);
-
-    BorderSide openSide = BorderSide(width: width, color: appointment.color);
-
-    if (widget.orientation == FlowOrientation.vertical) {
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.last) {
-        topSide = openSide;
-      }
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.first) {
-        bottomSide = openSide;
-      }
-    } else {
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.last) {
-        leftSide = openSide;
-      }
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.first) {
-        rightSide = openSide;
-      }
-    }
-
-    return Border(
-      top: topSide,
-      right: rightSide,
-      bottom: bottomSide,
-      left: leftSide,
-    );
+    return Border.all(width: width, color: color);
   }
 
-  List<BorderSide> getOpenBorder(bool isDragging){
-    double width = 1;
-    Color color = appointment.color.darken(.25);
-    List<BorderSide> result = [BorderSide.none, BorderSide.none, BorderSide.none, BorderSide.none];
-    if(!isDragging){
-      if (isSelected) {
-        width = 1.5;
-        color = settings.getSelectionBorderColor(context);
-      } else if (isHovered) {
-        color = settings.getHoverBorderColor(context);
-      }
-    }
-    if (appointment.appointmentItemsByDay.length == 1) {
-       return result;
-    }
-    BorderSide openSide = BorderSide(width: width, color: appointment.color);
-
-    if (widget.orientation == FlowOrientation.vertical) {
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.last) {
-        result[0] = openSide;
-      }
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.first) {
-        result[2] = openSide;
-      }
-    } else {
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.last) {
-        result[3] = openSide;
-      }
-      if (widget.appointmentItem == appointment.appointmentItemsByDay.first) {
-        result[1] = openSide;
-      }
-    }
-
-    return result;
-  }
-
-  selectAppointment() {
+ selectAppointment() {
      slotSelector?.clearSelection();
      AppointmentService.instance.selectAppointment(appointment);
   }
@@ -247,16 +155,10 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
 
 
     Widget appointmentViewBody(double opacity, bool dragging) {
-      return OpenBorder(
-        isActive: !dragging,
-        isFirst: isFirstInSeries,
-        isLast: isLastInSeries,
-        orientation: widget.orientation == FlowOrientation.vertical ? Axis.vertical : Axis.horizontal,
-        border: openBorder(dragging),
-        color: color.withOpacity(opacity),
-        size: Size(width, height),
+      return Visibility(
+        visible: height > 0,
         child: Container(
-            padding: const EdgeInsets.only(left: 4, top: 2, bottom: 2, right: 4),
+            padding: const EdgeInsets.only(left: 4, top: 1, bottom: 1, right: 4),
             decoration: widget.decoration ??
                 BoxDecoration(
                   color: color.withOpacity(opacity),
@@ -268,27 +170,23 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                FittedBox(
-                  child: Text(widget.appointmentItem.appointment.subject,
-                      style: widget.textStyle ??
-                          TextStyle(
-                              color: textColor,
-                              fontSize: height >= minResponsiveHeight ? 12.0 : min(12,height * .40),
-                              overflow: TextOverflow.ellipsis,),),
-                ),
+                Text(widget.appointmentItem.appointment.subject,
+                    style: widget.textStyle ??
+                        TextStyle(
+                            color: textColor,
+                            fontSize: height >= minResponsiveHeight ? 12.0 : min(12, height * .5),
+                            overflow: TextOverflow.ellipsis,),),
                 Visibility(
                   visible: height > minResponsiveHeight,
                   child: ClipRect(
-                    child: FittedBox(
-                      child: Text(
-                          '${DateFormat('h:mm a').format(widget.appointmentItem.appointment.startDate)} - ${DateFormat('h:mm a')
-                                  .format(widget.appointmentItem.appointment.endDate)}',
-                          style: widget.textStyle ??
-                              TextStyle(
-                                  color: textColor,
-                                  fontSize: 12.0,
-                                  overflow: TextOverflow.ellipsis,),),
-                    ),
+                    child: Text(
+                        '${DateFormat('h:mm a').format(widget.appointmentItem.appointment.startDate)} - ${DateFormat('h:mm a')
+                                .format(widget.appointmentItem.appointment.endDate)}',
+                        style: widget.textStyle ??
+                            TextStyle(
+                                color: textColor,
+                                fontSize: 12.0,
+                                overflow: TextOverflow.ellipsis,),),
                   ),
                 ),
               ],
@@ -297,54 +195,63 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
     }
 
     Widget appointmentView({double opacity = 1, bool dragging = false}) {
-      return Padding(
-        padding: const EdgeInsets.only(left: 0.5),
-        child: Listener(
-          behavior: HitTestBehavior.translucent,
-          onPointerDown: (event) {
-            isHovered = false;
-            if (SchedulerViewHelper.isMobileLayout(context)) {
-              longPressTimer = Timer(settings.selectionDelay, () {
-                cancelLongPressTimer();
-                if (settings.hapticFeedbackOnLongPressSelection) {
-                    HapticFeedback.selectionClick();
-                }
-                selectAppointment();
-              });
-            }
-          },
-          onPointerUp: (event) {
-            cancelLongPressTimer();
-            if (!SchedulerViewHelper.isMobileLayout(context)) {
-              selectAppointment();
-            }
-          },
-          onPointerMove: (event) {
-            if (event.down && event.delta.distanceSquared > 2) {
-              cancelLongPressTimer();
-            }
-          },
-          child: MouseRegion(
-            cursor: DraggableCursor(),
-            opaque: !SchedulerViewHelper.isMobileLayout(context),
-            onEnter: (event) {
-              if (event.kind == PointerDeviceKind.mouse) {
-                isHovered = true;
+      return Tooltip(
+        message: appointment.shortSummary,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 0.5),
+          child: Listener(
+            behavior: HitTestBehavior.translucent,
+            onPointerDown: (event) {
+              isHovered = false;
+              if (SchedulerViewHelper.isMobileLayout(context)) {
+                longPressTimer = Timer(settings.selectionDelay, () {
+                  cancelLongPressTimer();
+                  if (settings.hapticFeedbackOnLongPressSelection) {
+                      HapticFeedback.selectionClick();
+                  }
+                  selectAppointment();
+                });
               }
             },
-            onExit: (event) {
-              isHovered = false;
+            onPointerUp: (event) {
+              cancelLongPressTimer();
+              if (!SchedulerViewHelper.isMobileLayout(context)) {
+                selectAppointment();
+              }
             },
-            child: ValueListenableBuilder(
-                valueListenable: hoverNotifier,
-                builder: (BuildContext context, bool hovered, Widget? child) =>
-                    AppointmentResizer(
-                        hovered: hovered,
-                        orientation: widget.orientation,
-                        appointmentItem: widget.appointmentItem,
-                        appointmentWidget: widget,
-                        child: appointmentViewBody(opacity, dragging),
-                    ),
+            onPointerMove: (event) {
+              if (event.down && event.delta.distanceSquared > 2) {
+                cancelLongPressTimer();
+              }
+            },
+            onPointerSignal: (pointerSignal) {
+              //--handle vertical wheel scrolling
+              if (pointerSignal is PointerScrollEvent && widget.orientation == FlowOrientation.vertical) {
+                SchedulerService.instance.scrollScheduler(pointerSignal.scrollDelta.dy);
+              }
+            },
+            child: MouseRegion(
+              cursor: DraggableCursor(),
+              opaque: !SchedulerViewHelper.isMobileLayout(context),
+              onEnter: (event) {
+                if (event.kind == PointerDeviceKind.mouse) {
+                  isHovered = true;
+                }
+              },
+              onExit: (event) {
+                isHovered = false;
+              },
+              child: ValueListenableBuilder(
+                  valueListenable: hoverNotifier,
+                  builder: (BuildContext context, bool hovered, Widget? child) =>
+                      AppointmentResizer(
+                          hovered: hovered,
+                          orientation: widget.orientation,
+                          appointmentItem: widget.appointmentItem,
+                          appointmentWidget: widget,
+                          child: appointmentViewBody(opacity, dragging),
+                      ),
+              ),
             ),
           ),
         ),
@@ -353,12 +260,12 @@ class _AppointmentWidgetState extends State<AppointmentWidget> with TickerProvid
 
     return ValueListenableBuilder(
         valueListenable: scheduler.schedulerScrollPosNotify,
-        builder: (BuildContext context, double scrollBy, Widget? child) {
+        builder: (BuildContext context, Offset scrollOffset, Widget? child) {
           widget.appointmentRenderService.scrollAppointment(widget.appointmentItem, Scheduler.currentScrollPos);
 
           return Positioned(
-            top: widget.appointmentItem.geometry.rect.top,
-            left: widget.appointmentItem.geometry.rect.left,
+            top: widget.appointmentItem.rect.top,
+            left: widget.appointmentItem.rect.left,
             child: SchedulerViewHelper.isMobileLayout(context)
                 ? appointmentView()
                 : AppointmentDragger(

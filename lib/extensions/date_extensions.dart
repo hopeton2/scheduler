@@ -79,8 +79,8 @@ extension DateExtension on DateTime {
   }
 
   int getDifferenceInCalendarDays(DateTime other) => other.startOfDay.differenceInDays(startOfDay);
-  int getDifferenceInCalendarWeeks(DateTime other) => getWeek - other.getWeek ;
-  int getDifferenceInCalendarMonths(DateTime other) => getMonth - other.getMonth ;
+  int getDifferenceInCalendarWeeks(DateTime other) => other.getWeek - getWeek ;
+  int getDifferenceInCalendarMonths(DateTime other) => other.getMonth - getMonth ;
 
   DateTime getEndOfDay() {
     return startOfDay.addDays(1).subMilliseconds(1);
@@ -215,6 +215,14 @@ extension DateExtension on DateTime {
     var date1 = DateTime.utc(year, month, day, hour, minute, second, millisecond, microsecond);
     var date2 = DateTime.utc(other.year, other.month, other.day, other.hour, other.minute, other.second, other.millisecond, other.microsecond);
     var result = date1.difference(date2);
+
+    return result;
+  }
+
+  int diffInMonth(DateTime other){
+    var date1 = DateTime.utc(year, month, day, hour, minute, second, millisecond, microsecond);
+    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour, other.minute, other.second, other.millisecond, other.microsecond);
+    var result = date1.difference(date2).inDays ~/ 30;
 
     return result;
   }

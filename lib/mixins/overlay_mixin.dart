@@ -12,7 +12,10 @@ mixin OverlayMixin<T extends StatefulWidget> on State<T> {
     _overlayEntry = OverlayEntry(
       builder: (_) => child,
     );
-    Overlay.of(context).insert(_overlayEntry!);
+    OverlayState? overlayState = Overlay.of(context);
+    if (overlayState != null) {
+      overlayState.insert(_overlayEntry!);
+    }
   }
 
 }

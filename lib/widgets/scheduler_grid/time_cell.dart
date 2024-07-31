@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:scheduler/scheduler.dart';
 import 'package:scheduler/services/scheduler_service.dart';
 
-
 class TimeCell extends StatelessWidget {
   final HeaderPosition headerPosition;
   final Size headerSize;
@@ -28,6 +27,7 @@ class TimeCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final schedulerSettings = SchedulerService().schedulerSettings;
+
     return Expanded(
       child: Flex(direction: Axis.horizontal, children: [
         Visibility(visible: headerVisible, child: header ?? cellHeader()),
@@ -43,7 +43,8 @@ class TimeCell extends StatelessWidget {
                   shape: Shape.line,
                   linePosition: direction == Axis.vertical
                       ? LinePosition.top
-                      : LinePosition.left),
+                      : LinePosition.left,
+                ),
         ),
       ]),
     );
@@ -53,5 +54,3 @@ class TimeCell extends StatelessWidget {
     return Container(width: headerSize.width, color: Colors.grey);
   }
 }
-
-

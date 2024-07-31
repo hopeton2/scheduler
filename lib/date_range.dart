@@ -38,5 +38,9 @@ class DateRange extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool inRangeOrBetween(DateTime startDate, DateTime endDate) {
+    return inRange(startDate) || inRange(endDate) || (startDate.isBefore(_dates.first) && endDate.isAfter(_dates.last));
+  }
+
 
 }

@@ -13,8 +13,11 @@ class MonthViewSettings with Diagnosticable {
   final Color? trailingDaysBackgroundColor;
   final String headerDayNameFormat;
   final String headerStyleName;
+  final double dayMinHeight;
+  final int fixedWeekCount;
 
   const MonthViewSettings({
+    this.fixedWeekCount = 6,
     this.showWeekNumber = true,
     this.weekNumberCaption = 'Week',
     this.rotateWeekNumber = true,
@@ -26,6 +29,7 @@ class MonthViewSettings with Diagnosticable {
     this.trailingDaysTextStyle, // = const TextStyle(color: Color(0xff000000)),
     this.headerDayNameFormat = DateFormat.WEEKDAY,
     this.headerStyleName = 'monthStyle1',
+    this.dayMinHeight = 100,
   });
 
   calcHeaderFormat(double clientWidth) {

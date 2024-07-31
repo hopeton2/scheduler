@@ -21,26 +21,34 @@ import 'package:scheduler/services/appointment_drag_service.dart';
 import 'package:scheduler/services/appointment_render_service.dart';
 import 'package:scheduler/services/appointment_service.dart';
 import 'package:scheduler/services/scheduler_service.dart';
+import 'package:scheduler/services/services.dart';
 import 'package:scheduler/services/view_navigation_service.dart';
 import 'package:scheduler/slot_selector.dart';
 import 'package:scheduler/themes/month_view_theme.dart';
 import 'package:scheduler/time_slot.dart';
-import 'package:scheduler/views/day/day_event_grid.dart';
 import 'package:scheduler/views/scheduler_view.dart';
 import 'package:scheduler/widgets/date_header.dart';
 import 'package:scheduler/widgets/open_border.dart';
-import 'package:scheduler/widgets/scroll_aware_stack.dart';
+import 'package:scheduler/widgets/scrollable_stack.dart';
 import 'package:scheduler/widgets/timeslot_cell.dart';
 import 'package:uuid/uuid.dart';
 
 import 'common/scheduler_view_helper.dart';
 import 'constants.dart';
 import 'scheduler_controller.dart';
+import 'services/event_layout_manager.dart';
 import 'services/ui_service.dart';
 import 'themes/scheduler_theme.dart';
+import 'views/day/allday_event_grid.dart';
+import 'views/month/month_cell_header.dart';
 import 'widgets/appointment/appointment_dragger.dart';
 import 'widgets/appointment/appointment_resizer.dart';
 import 'widgets/event_grid/event_grid.dart';
+import 'widgets/scheduler_grid/cell_painter.dart';
+import 'widgets/scheduler_grid/grid_cell.dart';
+import 'widgets/scheduler_grid/grid_helper.dart';
+import 'widgets/scheduler_grid/scheduler_grid.dart';
+import 'widgets/scheduler_grid/timebar/timebar_cell.dart';
 import 'widgets/virtual_page_view/virtual_page_view.dart';
 import 'widgets/view_navigator/button_navigation.dart';
 import 'widgets/view_navigator/popup_navigation_ex.dart';
@@ -153,14 +161,14 @@ class Scheduler extends InheritedWidget {
   final SlotSelector slotSelector = SlotSelector();
   // final DateRange dateRange = DateRange();
   final ValueNotifier<DateTime> clockTickNotify = ValueNotifier<DateTime>(DateTime.now());
-  final ValueNotifier<double> schedulerScrollPosNotify = ValueNotifier<double>(0);
+  final ValueNotifier<Offset> schedulerScrollPosNotify = ValueNotifier<Offset>(Offset.zero);
   final ViewNavigator? viewNavigator;
   final SchedulerController controller;
   final AnimationController viewAnimationController;
   final String uuid;
   final JzScheduler scheduler;
 
-  static double currentScrollPos = 0;
+  static Offset currentScrollPos = Offset.zero;
 
   Scheduler({Key? key, 
     required this.scheduler,
@@ -200,13 +208,14 @@ class Scheduler extends InheritedWidget {
     ViewNavigationService().viewType = value;
   }
 
-  void setSchedulerScrollPos(double value) {
+  void setSchedulerScrollPos(Offset value) {
     schedulerScrollPosNotify.value = value;
     currentScrollPos = value;
   }
 
+  
   bool _positionInitialized = false;
-  void initializeSchedulerScrollPos(double value) {
+  void initializeSchedulerScrollPos(Offset value) {
     if (!_positionInitialized) {
       _positionInitialized = true;
       setSchedulerScrollPos(value);
@@ -220,6 +229,7 @@ class Scheduler extends InheritedWidget {
   @override
   bool updateShouldNotify(covariant Scheduler oldWidget) {
      return oldWidget.uuid != uuid;
+
   }
 
   void dispose() {

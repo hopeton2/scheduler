@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:dart_date/dart_date.dart';
+import 'package:scheduler/extensions/ui_extensions.dart';
 
 import '../mixins/event_layout_mixin.dart';
 import '../models/appointment_item.dart';
@@ -10,9 +11,17 @@ class EventPositionService with EventLayoutMixin {
   EventPositionService._internal();
 
 
-  void positionHorizontalEvents(List<AppointmentItem> appointmentItems, double margin) {
+  void positionHorizontalEvents(List<AppointmentItem> appointmentItems, double margin, {Rect? clientRect}) {
     for (var event in appointmentItems) {
       _repositionHorizontalOverlaps(event, appointmentItems, margin);
+      //--adjusted rect to account for the "more" button at the bottom
+
+      if (clientRect != null) {
+        clientRect = clientRect.shrink(const Offset(0,1));
+        if (!clientRect.contains(event.rect.bottomRight)) {
+          event.rect = Rect.zero;
+        }
+      }
     }
   }
 

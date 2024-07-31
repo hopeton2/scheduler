@@ -32,8 +32,6 @@ class SchedulerSettings with Diagnosticable {
   final Color? currentTimeIndicatorColor;
   final bool currentTimeIndicatorEarlierDays;
   final int currentTimeIndicatorAnimationSpeed;
-  final Color? defaultAppointmentColor;
-  final int defaultAppointmentDurationMinutes;
   final bool snapToTimeSlot;
   final bool navigationScroll;
 
@@ -68,8 +66,6 @@ class SchedulerSettings with Diagnosticable {
     this.currentTimeIndicatorColor = const Color(0xfffc1302),
     this.currentTimeIndicatorEarlierDays = true,
     this.currentTimeIndicatorAnimationSpeed = 250,
-    this.defaultAppointmentColor = const Color(0xFF939495),
-    this.defaultAppointmentDurationMinutes = 30,
     this.navigationScroll = true,
   }): assert(firstDayOfWeek >= 1 && firstDayOfWeek <= 7);
 
@@ -77,6 +73,7 @@ class SchedulerSettings with Diagnosticable {
     int startMinutes = Duration(hours: dayStartTime.hour, minutes: dayStartTime.minute).inMinutes;
     int endMinutes = Duration(hours: dayEndTime.hour, minutes: dayEndTime.minute).inMinutes;
     int minuteDiff = endMinutes - startMinutes;
+
     return Duration(hours: minuteDiff ~/ 60, minutes: minuteDiff.remainder(60));
   }
 
@@ -100,4 +97,7 @@ class SchedulerSettings with Diagnosticable {
     return timebarFontColor ?? Theme.of(context).colorScheme.onBackground;
   }
 
+  Color? getBackgroundFontColor(BuildContext context) {
+    return Theme.of(context).colorScheme.onBackground;
+  }
 }

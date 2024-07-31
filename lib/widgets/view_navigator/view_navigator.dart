@@ -28,7 +28,7 @@ class ViewNavigatorState extends State<ViewNavigator> with IntervalConfig {
   @override
   dispose() {
     controller.removeListener(()=>{});
-    ViewNavigationService().removeListener(() {});
+    ViewNavigationService().removeListener(()=>{});
     super.dispose();
   }
 
@@ -43,7 +43,7 @@ class ViewNavigatorState extends State<ViewNavigator> with IntervalConfig {
       // locale: Locale(scheduler.schedulerSettings.locale)
     );
     if (selectedDate != null) {
-      controller.goDate(selectedDate);
+      controller.selectDate(selectedDate);
     }
   }
 
@@ -62,14 +62,14 @@ class ViewNavigatorState extends State<ViewNavigator> with IntervalConfig {
           Padding(
               padding: const EdgeInsets.only(left: 10, right: 10),
               child: TextButton(
-                  onPressed: () => controller.goToday(),
-                  child: const Text("Today"),),),
+                  onPressed: () => controller.selectToday(),
+                  child: const Text(kTodayCaption),),),
           Visibility(
             visible: !SchedulerViewHelper.isSmallDevice(context),
             child: IconButton(
               iconSize: 20.0,
               icon: const Icon(Icons.arrow_back_ios),
-              onPressed: () => controller.goPreviousDate(),
+              onPressed: () => controller.gotoPreviousPage(),
             ),
           ),
           Visibility(
@@ -77,7 +77,7 @@ class ViewNavigatorState extends State<ViewNavigator> with IntervalConfig {
             child: IconButton(
               iconSize: 20.0,
               icon: const Icon(Icons.arrow_forward_ios),
-              onPressed: () =>  controller.goNextDate(),
+              onPressed: () =>  controller.gotoNextPage(),
             ),
           ),
           Padding(

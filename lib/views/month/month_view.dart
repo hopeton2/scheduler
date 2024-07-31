@@ -8,33 +8,119 @@ class MonthView extends StatefulWidget {
 }
 
 class _MonthViewState extends State<MonthView> with IntervalConfig {
+  Scheduler scheduler = SchedulerService.instance.scheduler;
   late SchedulerSettings schedulerSettings;
   late MonthViewSettings settings;
   late double weekNumberWidth = 0;
   late double dayWidth;
   late double daysWidth;
+  late GridHelper gridHelper;
+  late DateTime pageDate = startDate;
+  late Color? backgroundColor;
+
+  int get currentMonth => pageDate.incWeeks(1).month;
+
+  @override
+  void initState() {
+    schedulerSettings = scheduler.schedulerSettings;
+    settings = scheduler.monthViewSettings;
+    gridHelper = GridHelper(
+      incrementRowDate: (int rowIndex) => pageDate.startOfDay.addDays(
+        rowIndex * DateTime.daysPerWeek,
+        true,
+      ),
+      showCellDate: true,
+      cellHeaderBuilder: (BuildContext context) => buildCellDateHeader(context),
+    );
+    super.initState();
+  }
+
+ ({DateTime start, DateTime end}) incCellDates(DateTime date, int index) {
+    DateTime start = date.incDays(index).startOfDay;
+    DateTime end = start.endOfDay;
+    return (start: start, end: end);
+  }
 
   @override
   Widget build(BuildContext context) {
-    schedulerSettings = Scheduler.of(context).schedulerSettings;
-    settings = Scheduler.of(context).monthViewSettings;
     // ColorScheme colorScheme = Theme.of(context).extension<MonthViewTheme>()?.colorScheme ?? Theme.of(context).colorScheme;
-    Color? backgroundColor =
+    backgroundColor =
         Theme.of(context).extension<MonthViewTheme>()?.backgroundColor ??
-            schedulerSettings.backgroundColor;
+            schedulerSettings.getBackgroundColor(context);
 
     return SchedulerView(
-      viewBuilder: buildMonthView,
+      viewBuilder: buildView,
       backgroundColor: backgroundColor,
     );
   }
 
-  Widget buildMonthView(BuildContext context, BoxConstraints constraints) {
+  Widget buildView(_, BoxConstraints constraints) {
     weekNumberWidth = settings.showWeekNumber ? settings.weekNumberWidth : 0;
     daysWidth = constraints.maxWidth - weekNumberWidth;
     dayWidth = daysWidth / DateTime.daysPerWeek;
 
-    return Column(children: [buildMonthHeader(context), buildWeeks()]);
+    return VirtualPageView(
+      key: GlobalKey(),
+      initialDate: incrementPageDate(scheduler.controller.selectedDate, multiplier: 0),
+      itemBuilder: (BuildContext context, date, _) {
+        pageDate = date.startOfWeek;
+
+        return Column(
+          children: [
+            buildMonthHeader(context),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  int colCount = 7;
+                  int rowCount = 6;
+                  int dayCount = colCount * rowCount;
+                  double dayHeight = max(
+                    settings.dayMinHeight,
+                    constraints.maxHeight / rowCount,
+                  );
+
+                  return Container(
+                    color: backgroundColor,
+                    child: EventGrid(
+                      gridHelper: gridHelper,
+                      eventLayoutHandler: (Rect rect, AppointmentRenderService renderService) => EventLayoutManager(
+                        renderService: renderService,
+                        gridHelper: gridHelper,
+                        initialDate: pageDate,
+                        incCellDate: (DateTime date, int index) => incCellDates(date, index),
+                        colCount: colCount,
+                        rowCount: rowCount,
+                        calendarRect: rect,
+                        orientation: Axis.horizontal,
+                        events: scheduler.dataSource!.visibleAppointmentItemsByWeek,
+                        fixedSize: 18,
+                      ).arrangeEvents(),
+                      cellHeaderBuilder: (BuildContext context, DateTime date, _,) => buildWeekNumber(context, date, dayHeight),
+                      showDashLines: false,
+                      date: pageDate,
+                      dayCount: dayCount,
+                      rowCount: rowCount,
+                      colCount: colCount,
+                      constraints: constraints,
+                      intervalHeight: dayHeight,
+                      intervalWidth: dayWidth,
+                      showCurrentTimeIndicator: false,
+                      orientation: Axis.horizontal,
+                      intervalType: IntervalType.day,
+                      rowHeaderWidth: weekNumberWidth,
+                      calendarViewType: CalendarViewType.month,
+                      fixedEventSize: 40,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    //return Column(children: [buildMonthHeader(context), buildWeeks()]);
   }
 
   Widget buildMonthHeader(BuildContext context) {
@@ -66,131 +152,22 @@ class _MonthViewState extends State<MonthView> with IntervalConfig {
     );
   }
 
-  Widget buildWeeks() {
-    List<Widget> weeks = [];
-    DateTime endOfFirstWeek = startDate.incDays(6);
-    DateTime date = endOfFirstWeek.startOfWeek;
-    int currentMonth = endOfFirstWeek.month;
-    while (true) {
-      weeks.add(buildWeek(date, currentMonth));
-      date = date.incDays(7);
-      if (!date.isSameMonth(endOfFirstWeek)) {
-        break;
-      }
+  CellPainter? buildCellDateHeader(BuildContext context) {
+    GridCell? cell = UIService.findWidgetByContext<GridCell>(context);
+    if (cell == null || cell.date == null) {
+      return null;
     }
 
-    return Expanded(child: Column(children: weeks));
+    return MonthCellHeader(
+      cell: cell,
+      context: context,
+      startDate: pageDate,
+      currentMonth: currentMonth,
+    );
   }
 
-  Widget buildWeek(DateTime startOfWeek, int currentMonth) {
-    List<Widget> days = [];
-
-    Color? cellColor(DateTime date) {
-      if (date.month == currentMonth) {
-        return Colors.transparent;
-      }
-
-      return date.month < currentMonth
-          ? settings.leadingDaysBackgroundColor
-          : settings.trailingDaysBackgroundColor;
-    }
-
-    for (int i = 0; i < DateTime.daysPerWeek; i++) {
-      DateTime date = startOfWeek.incDays(i);
-      DateTime endDate = date.incDays(1).subMilliseconds(100);
-      bool isSameMonth = date.month == currentMonth;
-      bool isDisabled = !settings.showLeadingAndTrailingDates && !isSameMonth;
-      if (i == 0 && settings.showWeekNumber) {
-        days.add(buildWeekNumber(date));
-      }
-      GlobalKey key = GlobalKey();
-      TimeSlot timeSlot = TimeSlot(
-        date,
-        endDate,
-        CalendarViewType.month,
-        IntervalType.day,
-        dayWidth,
-      );
-      days.add(
-        Expanded(
-          child: TimeslotCell(
-            builder: (context, isSelected) =>
-                buildDayCell(date, currentMonth, isSelected, isDisabled),
-            timeSlot: timeSlot,
-            showDivider: false,
-            showBorders: true,
-            showBottomBorder: true,
-            isGroupEnd: true,
-            width: dayWidth,
-            disabled: isDisabled,
-            backgroundColor: cellColor(date),
-            flowOrientation: FlowOrientation.horizontal,
-            key: key,
-          ),
-        ),
-      );
-    }
-
-    return Expanded(child: Row(children: days));
-  }
-
-  Widget buildDayCell(
-    DateTime date,
-    int currentMonth,
-    bool isSelected,
-    bool disabled,
-  ) {
-    bool isLongDate = date == startDate || date.isFirstDayOfMonth;
-
-    Color? fontColor(DateTime date) {
-      if (date.month == currentMonth) {
-        return null; //Colors.black;
-      }
-
-      return date.month < currentMonth
-          ? settings.leadingDaysTextStyle != null
-              ? settings.leadingDaysTextStyle!.color
-              : null
-          : settings.trailingDaysTextStyle != null
-              ? settings.trailingDaysTextStyle!.color
-              : null;
-    }
-
-    String monthDateFormat() {
-      String result = 'd';
-      if (isLongDate) {
-        result = 'MMM d';
-        if (MediaQuery.of(context).size.width <= kSmallDevice) {
-          result = 'Md';
-        }
-      }
-
-      return result;
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.center, children: [
-      DateHeader(
-        height: isLongDate ? null : 40,
-        width: isLongDate ? 80 : 40,
-        isSelected: isSelected,
-        backgroundColor: Colors.transparent,
-        headerType: DateHeaderType.day,
-        circleWhenNow: true,
-        isLongText: isLongDate,
-        date: date,
-        fontSize: 14,
-        dateVisible: !disabled,
-        fontColor: fontColor(date),
-        textAlign: TextAlign.center,
-        padding: const EdgeInsets.all(5.0),
-        dateFormat: monthDateFormat(),
-      ),
-      Container(),
-    ]);
-  }
-
-  Widget buildWeekNumber(DateTime date) {
-    String weekNumber = date.getWeek.toString();
+  Widget buildWeekNumber(BuildContext context, DateTime date, double height) {
+    String weekNumber = date.addDays(1, true).getISOWeek.toString();
     String caption = settings.rotateWeekNumber
         ? '${settings.weekNumberCaption} $weekNumber'
         : weekNumber;
@@ -198,7 +175,9 @@ class _MonthViewState extends State<MonthView> with IntervalConfig {
     return Container(
       padding: const EdgeInsets.only(top: 5, bottom: 5),
       width: weekNumberWidth,
+      height: height > 0 ? height : null,
       decoration: BoxDecoration(
+        color: backgroundColor?.lighten(0.02),
         border: Border(
           bottom: BorderSide(
             color: schedulerSettings.getIntervalLineColor(context),
