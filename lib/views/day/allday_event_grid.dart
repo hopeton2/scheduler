@@ -1,5 +1,6 @@
 import 'package:dart_date/dart_date.dart';
 import 'package:flutter/material.dart';
+import 'package:scheduler/common/scheduler_view_helper.dart';
 import 'package:scheduler/extensions/date_extensions.dart';
 
 import '../../scheduler.dart';
@@ -32,14 +33,13 @@ class AlldayEventGrid extends StatefulWidget {
   State<AlldayEventGrid> createState() => AlldayEventGridState();
 }
 
-class AlldayEventGridState extends State<AlldayEventGrid>  {
-  
+class AlldayEventGridState extends State<AlldayEventGrid> {
   ({DateTime start, DateTime end}) incCellDates(int index) {
     DateTime start = widget.startDate.incDays(index).startOfDay;
     DateTime end = start.endOfDay;
     return (start: start, end: end);
   }
- 
+
   @override
   Widget build(BuildContext context) {
     GridHelper gridHelper = GridHelper(
@@ -57,7 +57,9 @@ class AlldayEventGridState extends State<AlldayEventGrid>  {
         key: UniqueKey(),
         isAllDayGrid: true,
         gridHelper: gridHelper,
-        eventLayoutHandler: (Rect rect, AppointmentRenderService renderService) => EventLayoutManager(
+        eventLayoutHandler:
+            (Rect rect, AppointmentRenderService renderService) =>
+                EventLayoutManager(
           gridHelper: gridHelper,
           renderService: renderService,
           cellTopOffset: 8,
@@ -67,7 +69,11 @@ class AlldayEventGridState extends State<AlldayEventGrid>  {
           calendarRect: rect,
           orientation: Axis.horizontal,
           incCellDate: (DateTime date, int index) => incCellDates(index),
-          events: schedulerService.scheduler.dataSource!.visibleAppointmentItemsByDateRange(widget.startDate.startOfDay, widget.startDate.incDays(widget.colCount-1).endOfDay).where((element) => element.appointment.isAllDay).toList(),
+          events: schedulerService.scheduler.dataSource!
+              .visibleAppointmentItemsByDateRange(widget.startDate.startOfDay,
+                  widget.startDate.incDays(widget.colCount - 1).endOfDay)
+              .where((element) => element.appointment.isAllDay)
+              .toList(),
           fixedSize: 20,
         ).arrangeEvents(),
         showDashLines: false,
@@ -84,10 +90,23 @@ class AlldayEventGridState extends State<AlldayEventGrid>  {
         intervalType: IntervalType.day,
         rowHeaderWidth: widget.timebarWidth,
         calendarViewType: viewNavigationService.viewType,
-        cellHeaderBuilder:
-                        (BuildContext context, DateTime date, int index) {
-                          return SizedBox(width: widget.timebarWidth, child: const Text("all-day"));
-                        },
+        cellHeaderBuilder: (BuildContext context, DateTime date, int index) {
+          return Visibility(
+            visible: !SchedulerViewHelper.isMobileLayout(context),
+            child: SizedBox(
+              width: widget.timebarWidth,
+              child: Text(
+                schedulerService.scheduler.dayViewSettings.allDayCaption,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: schedulerService
+                      .scheduler.schedulerSettings.timebarFontColor,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          );
+        },
         fixedEventSize: 40,
       ),
     );

@@ -1,6 +1,7 @@
-import 'package:flutter/foundation.dart';
 import 'package:scheduler/extensions/date_extensions.dart';
 import 'package:scheduler/scheduler.dart';
+import 'package:flutter/material.dart';
+import 'package:scheduler/widgets/appointment/appointment_editor.dart';
 
 import 'date_range.dart';
 import 'interval_config.dart';
@@ -38,10 +39,10 @@ class SchedulerController extends ChangeNotifier {
   }
 
   bool canSelectAndJumpToDayView = false;
-  
+
   set startDate(DateTime value) {
     if (_startDate != value) {
-       _startDate = value;
+      _startDate = value;
       startDateChangeNotify.value = value;
       notifyListeners();
     }
@@ -57,7 +58,8 @@ class SchedulerController extends ChangeNotifier {
   gotoNextPage() {
     schedulerSettings.navigationScroll
         ? ViewNavigationService().scrollNextPage()
-        : startDate = intervalConfigProxy.incrementPageDate(_startDate, multiplier: 1);
+        : startDate =
+            intervalConfigProxy.incrementPageDate(_startDate, multiplier: 1);
   }
 
   gotoPreviousPage() {
@@ -73,7 +75,7 @@ class SchedulerController extends ChangeNotifier {
 
   selectInOneDay(DateTime date) {
     if (!canSelectAndJumpToDayView || viewType == CalendarViewType.day) {
-        return;
+      return;
     }
     _startDate = date;
     viewNavigationService.viewType = CalendarViewType.day;
@@ -83,12 +85,16 @@ class SchedulerController extends ChangeNotifier {
   selectDate(DateTime date) {
     int multiplier = 0;
     DateTime incDate = viewType == CalendarViewType.month ? startDate : date;
-    if (viewType == CalendarViewType.month && visibleDateRange.dates.isNotEmpty && !date.isBetween(visibleDateRange.dates.first, visibleDateRange.dates.last)) {
-      multiplier = date.isBefore(visibleDateRange.dates.first) 
-      ? date.diffInMonth(visibleDateRange.dates.first) - 1
-      : date.diffInMonth( visibleDateRange.dates.last) + 1;
+    if (viewType == CalendarViewType.month &&
+        visibleDateRange.dates.isNotEmpty &&
+        !date.isBetween(
+            visibleDateRange.dates.first, visibleDateRange.dates.last)) {
+      multiplier = date.isBefore(visibleDateRange.dates.first)
+          ? date.diffInMonth(visibleDateRange.dates.first) - 1
+          : date.diffInMonth(visibleDateRange.dates.last) + 1;
     }
-    startDate = intervalConfigProxy.incrementPageDate(incDate, multiplier: multiplier);
+    startDate =
+        intervalConfigProxy.incrementPageDate(incDate, multiplier: multiplier);
     selectDates([date]);
   }
 
@@ -105,7 +111,59 @@ class SchedulerController extends ChangeNotifier {
     selectedDatesChangeNotify.value = _selectedDates;
   }
 
-  DateTime get selectedDate => selectedDates.isNotEmpty ? _selectedDates.first : startDate;
+  DateTime get selectedDate =>
+      selectedDates.isNotEmpty ? _selectedDates.first : startDate;
+
+  /// Creates a new appointment using the current date as reference
+  void createNewAppointment(BuildContext context) {
+    // Get the current selected date from controller
+    final DateTime currentDate = selectedDate;
+
+    // Get the current time for time component
+    final DateTime now = DateTime.now();
+
+    // Combine selected date with current time (rounded to nearest 15 minutes)
+    DateTime startTime = DateTime(
+      currentDate.year,
+      currentDate.month,
+      currentDate.day,
+      now.hour,
+      now.minute,
+    ).roundToNearest(const Duration(minutes: 15));
+
+    // If the time is now in the past (because selected date is today but time has passed),
+    // or if we're near the end of the day, move to next reasonable time
+    final DateTime currentDateTime = DateTime.now();
+    if (startTime.isBefore(currentDateTime) || now.hour >= 23) {
+      // If it's near the end of the day, start on the next day at work start time
+      if (now.hour >= 21) {
+        startTime = DateTime(
+          currentDate.year,
+          currentDate.month,
+          currentDate.day,
+          schedulerSettings.workDayStartTime.hour,
+          schedulerSettings.workDayStartTime.minute,
+        ).add(const Duration(days: 1));
+      } else {
+        // Otherwise, start at the next reasonable time (now + 15 minutes)
+        startTime = currentDateTime
+            .roundToNearest(const Duration(minutes: 15))
+            .add(const Duration(minutes: 15));
+      }
+    }
+
+    // Set end time to 1 hour after start
+    final DateTime endTime = startTime.add(const Duration(hours: 1));
+
+    // Show the appointment editor dialog
+    showDialog(
+      context: context,
+      builder: (context) => AppointmentEditor(
+        initialStartDate: startTime,
+        initialEndDate: endTime,
+      ),
+    );
+  }
 }
 
 class IntervalConfigProxy with IntervalConfig {

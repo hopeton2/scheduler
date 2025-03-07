@@ -10,12 +10,13 @@ extension DateExtension on DateTime {
   bool get isTopOfHour {
     return minute == 0;
   }
+
   DateTime get startOfQuarter {
-     return DateTime(year, (quarter-1) * 3 + 1, 1);
+    return DateTime(year, (quarter - 1) * 3 + 1, 1);
   }
 
   DateTime get endOfQuarter {
-     return startOfQuarter.addMonths(3).incDays(-1);
+    return startOfQuarter.addMonths(3).incDays(-1);
   }
 
   bool get isStartOfQuarter {
@@ -47,7 +48,7 @@ extension DateExtension on DateTime {
   // }
 
   int get quarter {
-    return (month + 2)~/3;
+    return (month + 2) ~/ 3;
   }
 
   double get totalMinutes {
@@ -57,36 +58,51 @@ extension DateExtension on DateTime {
   }
 
   String get formatHour {
-      return DateFormat(DateFormat.HOUR).format(this);
+    return DateFormat(DateFormat.HOUR).format(this);
   }
 
   int get daysInMonth {
-     switch (month) {
-       case 1: return 31;
-       case 2: return isLeapYear ? 29 :28;
-       case 3: return 31;
-       case 4: return 30;
-       case 5: return 31;
-       case 6: return 30;
-       case 7: return 31;
-       case 8: return 31;
-       case 9: return 30;
-       case 10: return 31;
-       case 11: return 30;
-       case 12: return 31;
-       default: return 0;
-     }
+    switch (month) {
+      case 1:
+        return 31;
+      case 2:
+        return isLeapYear ? 29 : 28;
+      case 3:
+        return 31;
+      case 4:
+        return 30;
+      case 5:
+        return 31;
+      case 6:
+        return 30;
+      case 7:
+        return 31;
+      case 8:
+        return 31;
+      case 9:
+        return 30;
+      case 10:
+        return 31;
+      case 11:
+        return 30;
+      case 12:
+        return 31;
+      default:
+        return 0;
+    }
   }
 
-  int getDifferenceInCalendarDays(DateTime other) => other.startOfDay.differenceInDays(startOfDay);
-  int getDifferenceInCalendarWeeks(DateTime other) => other.getWeek - getWeek ;
-  int getDifferenceInCalendarMonths(DateTime other) => other.getMonth - getMonth ;
+  int getDifferenceInCalendarDays(DateTime other) =>
+      other.startOfDay.differenceInDays(startOfDay);
+  int getDifferenceInCalendarWeeks(DateTime other) => other.getWeek - getWeek;
+  int getDifferenceInCalendarMonths(DateTime other) =>
+      other.getMonth - getMonth;
 
   DateTime getEndOfDay() {
     return startOfDay.addDays(1).subMilliseconds(1);
   }
 
-  bool isBetween(DateTime start, DateTime end){
+  bool isBetween(DateTime start, DateTime end) {
     return this >= start && this <= end;
   }
 
@@ -94,52 +110,54 @@ extension DateExtension on DateTime {
     return this > start && this < end;
   }
 
-  bool isBetweenDay(DateTime start, DateTime end){
+  bool isBetweenDay(DateTime start, DateTime end) {
     return startOfDay >= start.startOfDay && this <= end.startOfDay;
   }
 
   bool isSameWeek(DateTime other) => other.getWeek == getWeek;
 
   Duration duration(DateTime later) => Duration(
-    days: later.differenceInDays(startOfDay),
-    minutes: later.totalMinutes.toInt() - totalMinutes.toInt(),);
+        days: later.differenceInDays(startOfDay),
+        minutes: later.totalMinutes.toInt() - totalMinutes.toInt(),
+      );
 
   DateTime closestMinute(int minuteInterval, {bool before = false}) {
-     if (minute == 0) {
-       return this;
-     }
-     if (minuteInterval == 0) {
-        return before ? startOfHour : addMinutes(60-minute);
-     }
-     List<DateTime> dates = [];
-     DateTime date = startOfHour;
-     while (date.isSameHour(startOfHour)){
-       dates.add(date);
-       date = date.addMinutes(minuteInterval);
-     }
-     DateTime result = closestTo(dates)!;
-     if (before && result.isAfter(this)) {
-       result = result.addMinutes(-minuteInterval);
-     }
+    if (minute == 0) {
+      return this;
+    }
+    if (minuteInterval == 0) {
+      return before ? startOfHour : addMinutes(60 - minute);
+    }
+    List<DateTime> dates = [];
+    DateTime date = startOfHour;
+    while (date.isSameHour(startOfHour)) {
+      dates.add(date);
+      date = date.addMinutes(minuteInterval);
+    }
+    DateTime result = closestTo(dates)!;
+    if (before && result.isAfter(this)) {
+      result = result.addMinutes(-minuteInterval);
+    }
 
-     return result;
+    return result;
   }
 
   DateTime getStartOfWeek(int weekStartDay) {
     var date = toUtc();
     int isoWeekStartDay = date.startOfWeek.weekday;
-     if (isoWeekStartDay == weekStartDay) {
-       if (weekday == date.startOfWeek.weekday) {
-         return this;
-       }
+    if (isoWeekStartDay == weekStartDay) {
+      if (weekday == date.startOfWeek.weekday) {
+        return this;
+      }
 
-       return date.startOfWeek;
-     }
+      return date.startOfWeek;
+    }
 
-     return date.startOfWeek.incDays(weekStartDay); // getPreviousDay(weekStartDay);
+    return date.startOfWeek
+        .incDays(weekStartDay); // getPreviousDay(weekStartDay);
   }
 
-  DateTime getStartOfWorkWeeks(int weekStartDay, int workWeekStartDay){
+  DateTime getStartOfWorkWeeks(int weekStartDay, int workWeekStartDay) {
     var date = getStartOfWeek(weekStartDay);
 
     return date.getNextDay(workWeekStartDay);
@@ -159,7 +177,7 @@ extension DateExtension on DateTime {
     return startOfWorkWeek;
   }
 
-  DateTime getNextDay(int day){
+  DateTime getNextDay(int day) {
     DateTime date = this;
     for (int i = 0; i < 7; i++) {
       date = date.incDays(i);
@@ -172,12 +190,12 @@ extension DateExtension on DateTime {
   }
 
   DateTime getPreviousDay(int dayNumber) {
-     DateTime result = incDays(-1);
-     while (result.weekday != dayNumber) {
-        result = result.incDays(-1);
-     }
+    DateTime result = incDays(-1);
+    while (result.weekday != dayNumber) {
+      result = result.incDays(-1);
+    }
 
-     return result;
+    return result;
   }
 
   DateTime incDays(int delta, [bool endsSameDayOnLastDay = false]) {
@@ -193,35 +211,42 @@ extension DateExtension on DateTime {
     //return addMinutes(delta, true);
     // return DateTime.utc(year, month, day, hour, minute + delta, second, millisecond, microsecond);
     // return addDuration(Duration(minutes: delta));
-     var result = addMinutes(delta, true);
-     var totMinutes = result.totalMinutes;
-     var diff = totMinutes - totalMinutes;
-     if (diff != delta) {
-        result = DateTime.utc(year, month, day, hour, minute + delta, second, millisecond, microsecond);
-     }
+    var result = addMinutes(delta, true);
+    var totMinutes = result.totalMinutes;
+    var diff = totMinutes - totalMinutes;
+    if (diff != delta) {
+      result = DateTime.utc(year, month, day, hour, minute + delta, second,
+          millisecond, microsecond);
+    }
 
-     return result;
+    return result;
   }
 
   int diffInDays(DateTime other) {
-    var date1 = DateTime.utc(year, month, day, hour, minute, second, millisecond, microsecond);
-    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour, other.minute, other.second, other.millisecond, other.microsecond);
+    var date1 = DateTime.utc(
+        year, month, day, hour, minute, second, millisecond, microsecond);
+    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour,
+        other.minute, other.second, other.millisecond, other.microsecond);
     var result = date1.differenceInDays(date2);
 
     return result;
   }
 
-  Duration diffInDuration(DateTime other ){
-    var date1 = DateTime.utc(year, month, day, hour, minute, second, millisecond, microsecond);
-    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour, other.minute, other.second, other.millisecond, other.microsecond);
+  Duration diffInDuration(DateTime other) {
+    var date1 = DateTime.utc(
+        year, month, day, hour, minute, second, millisecond, microsecond);
+    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour,
+        other.minute, other.second, other.millisecond, other.microsecond);
     var result = date1.difference(date2);
 
     return result;
   }
 
-  int diffInMonth(DateTime other){
-    var date1 = DateTime.utc(year, month, day, hour, minute, second, millisecond, microsecond);
-    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour, other.minute, other.second, other.millisecond, other.microsecond);
+  int diffInMonth(DateTime other) {
+    var date1 = DateTime.utc(
+        year, month, day, hour, minute, second, millisecond, microsecond);
+    var date2 = DateTime.utc(other.year, other.month, other.day, other.hour,
+        other.minute, other.second, other.millisecond, other.microsecond);
     var result = date1.difference(date2).inDays ~/ 30;
 
     return result;
@@ -244,15 +269,15 @@ extension DateExtension on DateTime {
     return addMonths(delta);
   }
 
-  DateTime incYears(int delta){
+  DateTime incYears(int delta) {
     return addYears(delta);
   }
 
-
-  String responsiveDayName(String defaultFormat, BuildContext context, bool useDefault) {
+  String responsiveDayName(
+      String defaultFormat, BuildContext context, bool useDefault) {
     double clientWidth = MediaQuery.of(context).size.width;
     String format = defaultFormat;
-    if (!useDefault){
+    if (!useDefault) {
       if (clientWidth <= kSmallDevice) {
         format = "ccccc";
       } else if (clientWidth <= kMediumDevice) {
@@ -273,4 +298,13 @@ extension DateExtension on DateTime {
   }
 }
 
-
+extension DateTimeHelpers on DateTime {
+  /// Rounds the DateTime to the nearest duration (e.g., 15 minutes)
+  DateTime roundToNearest(Duration duration) {
+    final int millis = millisecondsSinceEpoch;
+    final int durationInMillis = duration.inMilliseconds;
+    return DateTime.fromMillisecondsSinceEpoch(
+        ((millis + durationInMillis ~/ 2) ~/ durationInMillis) *
+            durationInMillis);
+  }
+}

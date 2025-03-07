@@ -51,7 +51,6 @@ class _DayViewState extends State<DayView> with IntervalConfig {
     );
   }
 
-  
   Widget buildView(BoxConstraints constraints) {
     return VirtualPageView(
       initialDate: startDate,
@@ -68,7 +67,7 @@ class _DayViewState extends State<DayView> with IntervalConfig {
               ),
             ),
           ),
-           AlldayEventGrid(
+          AlldayEventGrid(
             backgroundColor: Colors.black45,
             colCount: widget.dayCount,
             startDate: pageDate,
@@ -102,8 +101,10 @@ class _DayViewState extends State<DayView> with IntervalConfig {
                         intervalBlockSize: slotsPerHour,
                       );
                     },
-                    getVisibleAppointments: ()=> schedulerService
-                        .scheduler.dataSource!.visibleAppointmentItemsByDay.where((element) => !element.appointment.isAllDay).toList(),
+                    getVisibleAppointments: () => schedulerService
+                        .scheduler.dataSource!.visibleAppointmentItemsByDay
+                        .where((element) => !element.appointment.isAllDay)
+                        .toList(),
                     date: pageDate,
                     dayCount: widget.dayCount,
                     constraints: constraints,
@@ -142,7 +143,7 @@ class _DayViewState extends State<DayView> with IntervalConfig {
                 width: dayViewSettings.timebarFullWidth,
               ),
             ),
-            SizedBox(
+            /*      SizedBox(
               height: 20,
               width: dayViewSettings.timebarFullWidth,
               child: Visibility(
@@ -156,7 +157,7 @@ class _DayViewState extends State<DayView> with IntervalConfig {
                   ),
                 ),
               ),
-            ),
+            ), */
 /*            Container(
               color: schedulerSettings.timebarBackgroundColor,
               height: 5,

@@ -8,18 +8,24 @@ class AppointmentItem {
   final Appointment appointment;
   final DateTime startDate;
   final DateTime endDate;
+  final bool isRecurrence;
   final AppointmentGeometry geometry = AppointmentGeometry();
-  AppointmentItem(this.appointment, this.startDate, this.endDate);
+
+  AppointmentItem({
+    required this.appointment,
+    required this.startDate,
+    required this.endDate,
+    this.isRecurrence = false,
+  });
+
   Duration get duration {
     return endDate.diffInDuration(startDate);
   }
 
   Rect get rect => geometry.rect;
-
   bool get isFirst => appointment.startDate == startDate;
-
   bool get isLast => appointment.endDate == endDate;
-  
+
   set rect(Rect value) {
     geometry.rect = value;
   }
@@ -46,7 +52,6 @@ class AppointmentItem {
 
   double get right => rect.right;
   set right(double value) {
-    rect = Rect.fromLTWH(left, top, value-left, height);
+    rect = Rect.fromLTWH(left, top, value - left, height);
   }
 }
-

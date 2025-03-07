@@ -72,7 +72,7 @@ class _MyAppState extends State<MyApp> {
     DateTime today = DateTime.now().startOfDay.addHours(2);
     result.addAllDayAppointment(today, "This is all day", color: ColorsExt.random);
     result.addAllDayAppointment(today, "This is another all day - 3 days", color: ColorsExt.random, days: 3);
-    
+
 
     result.addAppointment(today.addMonths(-1), const Duration(minutes: 120), "last month", color: Colors. red);
 

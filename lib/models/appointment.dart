@@ -1,9 +1,13 @@
 part of scheduler;
 
 typedef AppointmentItemGenerator = List<AppointmentItem> Function(
-    Appointment appointment, DateTime startDate, DateTime endDate,);
+  Appointment appointment,
+  DateTime startDate,
+  DateTime endDate,
+);
 
 class Appointment {
+  String? id;
   late DateTime _startDate;
   DateTime get startDate => _startDate;
 
@@ -12,6 +16,7 @@ class Appointment {
 
   final appointmentService = AppointmentService.instance;
 
+  String? recurrenceRule;
   String subject;
   Color color;
   bool isAllDay;
@@ -23,13 +28,14 @@ class Appointment {
   Appointment(
     DateTime startDate,
     DateTime endDate,
-    this.subject,
-    {
-      this.color = Colors.grey,
-      this.isAllDay = false,
-    }
-  ){
+    this.subject, {
+    this.id,
+    this.color = Colors.grey,
+    this.isAllDay = false,
+    this.recurrenceRule,
+  }) {
     setDates(startDate, endDate);
+    id ??= const Uuid().v4();
   }
 
   Duration get duration {
@@ -44,8 +50,17 @@ class Appointment {
     }
   }
 
-  get shortSummary => "${DateFormat("yyyy-MM-dd").format(startDate)} to ${DateFormat("yyyy-MM-dd").format(endDate)}";
-  get longSummary => '$subject - ${startDate.toIso8601String()} - ${endDate.toIso8601String()}';
+  get shortSummary {
+    final editorSettings =
+        SchedulerService().scheduler.appointmentEditorSettings;
+    return "${DateFormat(editorSettings.dateFormat).format(startDate)} to ${DateFormat(editorSettings.dateFormat).format(endDate)}";
+  }
+
+  get longSummary {
+    final editorSettings =
+        SchedulerService().scheduler.appointmentEditorSettings;
+    return '$subject - ${DateFormat(editorSettings.dateTimeFormat).format(startDate)} - ${DateFormat(editorSettings.dateTimeFormat).format(endDate)}';
+  }
 
   _generateAppointmentItems() {
     appointmentItems.clear();
@@ -53,9 +68,11 @@ class Appointment {
     appointmentItemsByMonth.clear();
     appointmentItemsByDay.clear();
     appointmentItems.addAll(appointmentService.getSingleAppointmentItems(this));
-    appointmentItemsByDay.addAll(appointmentService.getAppointmentItemsByDay(this));
-    appointmentItemsByWeek.addAll(appointmentService.getAppointmentItemsByWeek(this));
-    appointmentItemsByMonth.addAll(appointmentService.getAppointmentItemsByMonth(this));
+    appointmentItemsByDay
+        .addAll(appointmentService.getAppointmentItemsByDay(this));
+    appointmentItemsByWeek
+        .addAll(appointmentService.getAppointmentItemsByWeek(this));
+    appointmentItemsByMonth
+        .addAll(appointmentService.getAppointmentItemsByMonth(this));
   }
-
 }

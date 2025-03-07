@@ -1,6 +1,5 @@
 part of scheduler;
 
-
 @immutable
 class SchedulerSettings with Diagnosticable {
   final String locale; // 'es_MX'; // 'ja_JP'; // Intl.systemLocale;
@@ -26,7 +25,7 @@ class SchedulerSettings with Diagnosticable {
   final Color? selectionFontColor;
   final Color? currentDateBackgroundColor;
   final Color? cellHoverBorderColor;
-  final Color? currentDateFontColor ;
+  final Color? currentDateFontColor;
   final Color? dividerLineColor;
   final Color? intervalLineColor;
   final Color? currentTimeIndicatorColor;
@@ -34,6 +33,7 @@ class SchedulerSettings with Diagnosticable {
   final int currentTimeIndicatorAnimationSpeed;
   final bool snapToTimeSlot;
   final bool navigationScroll;
+  final bool showFloatingAppointmentButton;
 
   const SchedulerSettings({
     this.locale = 'en_US',
@@ -41,8 +41,8 @@ class SchedulerSettings with Diagnosticable {
     this.firstDayOfWorkWeek = 1,
     this.blackoutDates = const <DateTime>[],
     this.showCurrentTimeIndicator = true,
-    this.dayStartTime = const TimeOfDay(hour:0, minute: 0),
-    this.dayEndTime = const TimeOfDay(hour:24, minute:0),
+    this.dayStartTime = const TimeOfDay(hour: 0, minute: 0),
+    this.dayEndTime = const TimeOfDay(hour: 24, minute: 0),
     this.workDayStartTime = const TimeOfDay(hour: 9, minute: 0),
     this.workDayEndTime = const TimeOfDay(hour: 17, minute: 0),
     this.dividerLineWidth = 0.75,
@@ -54,7 +54,7 @@ class SchedulerSettings with Diagnosticable {
     this.workHoursBackgroundColor = const Color(0xff757575),
     this.dateHighlightColor = const Color(0xffff9800),
     this.headerBackgroundColor, // = const Color(0xff424242),
-    this.headerFontColor,// = const Color(0xffffffff),
+    this.headerFontColor, // = const Color(0xffffffff),
     this.backgroundColor, //= const Color(0xffffffff),
     this.selectionBackgroundColor = const Color(0x90ACC5EE),
     this.selectionFontColor = const Color(0xff2196f3),
@@ -67,11 +67,15 @@ class SchedulerSettings with Diagnosticable {
     this.currentTimeIndicatorEarlierDays = true,
     this.currentTimeIndicatorAnimationSpeed = 250,
     this.navigationScroll = true,
-  }): assert(firstDayOfWeek >= 1 && firstDayOfWeek <= 7);
+    this.showFloatingAppointmentButton = true,
+  }) : assert(firstDayOfWeek >= 1 && firstDayOfWeek <= 7);
 
   Duration get dayDuration {
-    int startMinutes = Duration(hours: dayStartTime.hour, minutes: dayStartTime.minute).inMinutes;
-    int endMinutes = Duration(hours: dayEndTime.hour, minutes: dayEndTime.minute).inMinutes;
+    int startMinutes =
+        Duration(hours: dayStartTime.hour, minutes: dayStartTime.minute)
+            .inMinutes;
+    int endMinutes =
+        Duration(hours: dayEndTime.hour, minutes: dayEndTime.minute).inMinutes;
     int minuteDiff = endMinutes - startMinutes;
 
     return Duration(hours: minuteDiff ~/ 60, minutes: minuteDiff.remainder(60));
@@ -90,7 +94,9 @@ class SchedulerSettings with Diagnosticable {
   }
 
   Color getBackgroundColor(BuildContext context) {
-    return backgroundColor ?? Theme.of(context).extension<SchedulerTheme>()?.backgroundColor ?? Theme.of(context).colorScheme.background;
+    return backgroundColor ??
+        Theme.of(context).extension<SchedulerTheme>()?.backgroundColor ??
+        Theme.of(context).colorScheme.background;
   }
 
   getTimebarFontColor(BuildContext context) {

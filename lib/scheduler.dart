@@ -23,6 +23,7 @@ import 'package:scheduler/services/appointment_service.dart';
 import 'package:scheduler/services/scheduler_service.dart';
 import 'package:scheduler/services/services.dart';
 import 'package:scheduler/services/view_navigation_service.dart';
+import 'package:scheduler/settings/appointment_editor_settings.dart';
 import 'package:scheduler/slot_selector.dart';
 import 'package:scheduler/themes/month_view_theme.dart';
 import 'package:scheduler/time_slot.dart';
@@ -37,12 +38,16 @@ import 'common/scheduler_view_helper.dart';
 import 'constants.dart';
 import 'scheduler_controller.dart';
 import 'services/event_layout_manager.dart';
+import 'services/recurrence_service.dart';
 import 'services/ui_service.dart';
+import 'settings/recurrence_settings.dart';
 import 'themes/scheduler_theme.dart';
 import 'views/day/allday_event_grid.dart';
 import 'views/month/month_cell_header.dart';
 import 'widgets/appointment/appointment_dragger.dart';
+import 'widgets/appointment/appointment_editor.dart';
 import 'widgets/appointment/appointment_resizer.dart';
+
 import 'widgets/event_grid/event_grid.dart';
 import 'widgets/scheduler_grid/cell_painter.dart';
 import 'widgets/scheduler_grid/grid_cell.dart';
@@ -69,18 +74,21 @@ part 'settings/appointment_settings.dart';
 part 'widgets/view_navigator/view_navigator.dart';
 part 'typedefs.dart';
 
-
 class JzScheduler extends StatefulWidget {
   final SchedulerSettings schedulerSettings;
   final DayViewSettings dayViewSettings;
   final MonthViewSettings monthViewSettings;
   final TimelineViewSettings timelineViewSettings;
   final AppointmentSettings appointmentSettings;
+  final RecurrenceSettings recurrenceSettings;
+  final AppointmentEditorSettings appointmentEditorSettings;
   final SchedulerDataSource? dataSource;
   final ViewNavigator? viewNavigator;
   final CalendarViewType viewType;
   final SchedulerController? controller;
   final DateTime? initialDate;
+  final Function(Appointment)? onAppointmentTap;
+  final FloatingActionButton? customFloatingActionButton;
 
   JzScheduler({
     Key? key,
@@ -94,33 +102,41 @@ class JzScheduler extends StatefulWidget {
     this.monthViewSettings = const MonthViewSettings(),
     this.timelineViewSettings = const TimelineViewSettings(),
     this.appointmentSettings = const AppointmentSettings(),
-  }):
-    super( key: key,) {
+    this.recurrenceSettings = const RecurrenceSettings(),
+    this.appointmentEditorSettings = const AppointmentEditorSettings(),
+    this.onAppointmentTap,
+    this.customFloatingActionButton,
+  }) : super(key: key) {
     ViewNavigationService().viewType = viewType;
   }
 
-
   @override
   _SchedulerState createState() => _SchedulerState();
-
 }
 
 class _SchedulerState extends State<JzScheduler> with TickerProviderStateMixin {
   bool isAutoScale = false;
   late SchedulerController controller;
   late AnimationController viewAnimationController;
-  
+
   @override
   void initState() {
-    viewAnimationController = AnimationController(duration: const Duration(milliseconds: 500), vsync: this);
-    ViewNavigationService().viewChangeNotify.addListener(() {setState(()=>{});});
-    controller = widget.controller != null ? widget.controller! : SchedulerController(date: widget.initialDate);
-    controller.addListener(() {setState(()=>{});});
+    viewAnimationController = AnimationController(
+        duration: const Duration(milliseconds: 500), vsync: this);
+    ViewNavigationService().viewChangeNotify.addListener(() {
+      setState(() => {});
+    });
+    controller = widget.controller != null
+        ? widget.controller!
+        : SchedulerController(date: widget.initialDate);
+    controller.addListener(() {
+      setState(() => {});
+    });
     super.initState();
   }
 
   @override
-  void dispose(){
+  void dispose() {
     widget.controller!.dispose();
     viewAnimationController.dispose();
     super.dispose();
@@ -128,13 +144,15 @@ class _SchedulerState extends State<JzScheduler> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    Scheduler scheduler = Scheduler(scheduler: widget,
-        viewNavigator: widget.viewNavigator,
-        controller: controller,
-        viewAnimationController: viewAnimationController,
+    Scheduler scheduler = Scheduler(
+      scheduler: widget,
+      viewNavigator: widget.viewNavigator,
+      controller: controller,
+      viewAnimationController: viewAnimationController,
+      onAppointmentTap: widget.onAppointmentTap,
     );
     SchedulerService(scheduler: scheduler);
-  /*  if (isAutoScale){
+    /*  if (isAutoScale){
       return ResponsiveWrapper.builder(
         scheduler,
         minWidth: 450,
@@ -151,43 +169,41 @@ class _SchedulerState extends State<JzScheduler> with TickerProviderStateMixin {
 
     return scheduler;
   }
-
-
 }
-
 
 class Scheduler extends InheritedWidget {
   late final Timer _timer;
   final SlotSelector slotSelector = SlotSelector();
   // final DateRange dateRange = DateRange();
-  final ValueNotifier<DateTime> clockTickNotify = ValueNotifier<DateTime>(DateTime.now());
-  final ValueNotifier<Offset> schedulerScrollPosNotify = ValueNotifier<Offset>(Offset.zero);
+  final ValueNotifier<DateTime> clockTickNotify =
+      ValueNotifier<DateTime>(DateTime.now());
+  final ValueNotifier<Offset> schedulerScrollPosNotify =
+      ValueNotifier<Offset>(Offset.zero);
   final ViewNavigator? viewNavigator;
   final SchedulerController controller;
   final AnimationController viewAnimationController;
   final String uuid;
   final JzScheduler scheduler;
+  // Add appointment tap callback
+  final Function(Appointment)? onAppointmentTap;
 
   static Offset currentScrollPos = Offset.zero;
 
-  Scheduler({Key? key, 
+  Scheduler({
+    Key? key,
     required this.scheduler,
-    this.viewNavigator, 
+    this.viewNavigator,
     required this.controller,
     required this.viewAnimationController,
-  })
-    : uuid = const Uuid().v4().toString(), super(key: key,
-    child: Material(
-      child: Column(
-        children: [
-          viewNavigator ?? const ViewNavigator(),
-          Expanded(
-            child: ViewNavigationService().currentView!,
+    this.onAppointmentTap,
+  })  : uuid = const Uuid().v4().toString(),
+        super(
+          key: key,
+          child: _SchedulerLayout(
+            scheduler: scheduler,
+            viewNavigator: viewNavigator,
           ),
-        ],
-      ),
-    ),
-  ){
+        ) {
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
       clockTickNotify.value = DateTime.now();
     });
@@ -196,14 +212,16 @@ class Scheduler extends InheritedWidget {
   SchedulerSettings get schedulerSettings => scheduler.schedulerSettings;
   DayViewSettings get dayViewSettings => scheduler.dayViewSettings;
   MonthViewSettings get monthViewSettings => scheduler.monthViewSettings;
-  TimelineViewSettings get timelineViewSettings => scheduler.timelineViewSettings;
+  TimelineViewSettings get timelineViewSettings =>
+      scheduler.timelineViewSettings;
   AppointmentSettings get appointmentSettings => scheduler.appointmentSettings;
+  RecurrenceSettings get recurrenceSettings => scheduler.recurrenceSettings;
+  AppointmentEditorSettings get appointmentEditorSettings =>
+      scheduler.appointmentEditorSettings;
   SchedulerDataSource? get dataSource => scheduler.dataSource;
   DateTime get startDate => controller.startDate;
   DateRange get dateRange => scheduler.dataSource!.visibleDateRange;
   CalendarViewType get viewType => ViewNavigationService().viewType;
-
-
   set viewType(CalendarViewType value) {
     ViewNavigationService().viewType = value;
   }
@@ -213,7 +231,6 @@ class Scheduler extends InheritedWidget {
     currentScrollPos = value;
   }
 
-  
   bool _positionInitialized = false;
   void initializeSchedulerScrollPos(Offset value) {
     if (!_positionInitialized) {
@@ -228,91 +245,59 @@ class Scheduler extends InheritedWidget {
 
   @override
   bool updateShouldNotify(covariant Scheduler oldWidget) {
-     return oldWidget.uuid != uuid;
-
+    return oldWidget.uuid != uuid;
   }
 
   void dispose() {
     _timer.cancel();
   }
+
+  // Add method to handle appointment tap
+  void handleAppointmentTap(Appointment appointment) {
+    if (onAppointmentTap != null) {
+      onAppointmentTap!(appointment);
+    }
+  }
+
+  // Method to create a new appointment
+  void createNewAppointment(BuildContext context) {
+    controller.createNewAppointment(context);
+  }
 }
 
-
-
-/*
-class Scheduler extends InheritedWidget {
-  late final SchedulerSettings schedulerSettings;
-  late final DayViewSettings dayViewSettings;
-  late final MonthViewSettings monthViewSettings;
-  late final TimelineViewSettings timelineViewSettings;
-  late final AppointmentSettings appointmentSettings;
-  final SlotSelector slotSelector = SlotSelector();
-  final DateRange dateRange = DateRange();
-  late final Timer _timer;
-  final ValueNotifier<DateTime> clockTickNotify = ValueNotifier<DateTime>(DateTime.now());
-  final ValueNotifier<double> schedulerScrollPosNotify = ValueNotifier<double>(0);
-  final SchedulerDataSource? dataSource;
+class _SchedulerLayout extends StatelessWidget {
+  final JzScheduler scheduler;
   final ViewNavigator? viewNavigator;
-  late final DateTime? initialDate;
 
-  Scheduler({
-    Key? key,
-    DateTime? initialDate,
-    this.dataSource,
+  const _SchedulerLayout({
+    required this.scheduler,
     this.viewNavigator,
-    required viewType,
-    SchedulerSettings? schedulerSettings,
-    DayViewSettings? dayViewSettings,
-    MonthViewSettings? monthViewSettings,
-    TimelineViewSettings? timelineViewSettings,
-    AppointmentSettings? appointmentSettings,
-  }) : super(
-          key: key,
-          child: Material(
-            child: Column(
-              children: [
-                viewNavigator ?? const ViewNavigator(),
-                Expanded(
-                  child: ViewNavigationService().currentView!,
-                ),
-              ],
-            ),
-          ),
-        )
-  {
-    this.schedulerSettings = schedulerSettings ?? const SchedulerSettings();
-    this.dayViewSettings = dayViewSettings ?? const DayViewSettings();
-    this.monthViewSettings = monthViewSettings ?? const MonthViewSettings();
-    this.timelineViewSettings = timelineViewSettings ?? const TimelineViewSettings();
-    this.appointmentSettings = appointmentSettings ?? const AppointmentSettings();
-    this.initialDate = initialDate ?? DateTime.now();
-    SchedulerService(scheduler: this);
-
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
-      clockTickNotify.value = DateTime.now();
-    });
-  }
-
-  set viewType(CalendarViewType value) {
-    ViewNavigationService().viewType = value;
-  }
-
-  CalendarViewType get viewType => ViewNavigationService().viewType;
-
-  void notifySchedulerScrollPos(double value) {
-    schedulerScrollPosNotify.value = value;
-  }
-
-  static Scheduler? of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<Scheduler>();
+  });
 
   @override
-  bool updateShouldNotify(covariant Scheduler oldWidget) {
-    return true; // (oldWidget.schedulerSettings != schedulerSettings) || (oldWidget.slotSelector != slotSelector);
-  }
-
-  void dispose() {
-    _timer.cancel();
+  Widget build(BuildContext context) {
+    return Material(
+      child: Scaffold(
+        body: Column(
+          children: [
+            viewNavigator ?? scheduler.viewNavigator ?? const ViewNavigator(),
+            Expanded(
+              child: ViewNavigationService().currentView!,
+            ),
+          ],
+        ),
+        floatingActionButton: scheduler
+                .schedulerSettings.showFloatingAppointmentButton
+            ? scheduler.customFloatingActionButton ??
+                FloatingActionButton(
+                  tooltip:
+                      scheduler.appointmentEditorSettings.newAppointmentTitle,
+                  child: const Icon(Icons.add),
+                  onPressed: () =>
+                      Scheduler.of(context).createNewAppointment(context),
+                )
+            : null,
+      ),
+    );
   }
 }
-*/
