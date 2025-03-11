@@ -210,11 +210,11 @@ class EventGridState extends State<EventGrid> {
         children: [
           NotificationListener<ScrollUpdateNotification>(
             onNotification: (notification) {
-              if (schedulerService.scrollController == scrollController) {
+              //if (schedulerService.scrollController == scrollController) {
                  var position = notification.metrics.pixels;
                  var positionOffset = notification.metrics.axis == Axis.vertical ? Offset(0, position) : Offset(position, 0);
                  scheduler.setSchedulerScrollPos(positionOffset);
-              }
+              //}
               return false;
             },
             child: widget.gridBuilder != null ? widget.gridBuilder!(context) : SchedulerGrid(

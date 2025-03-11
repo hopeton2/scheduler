@@ -29,9 +29,14 @@ class _DayViewState extends State<DayView> with IntervalConfig {
     interval = schedulerService.dayViewSettings.intervalMinute.value;
     slotsPerHour = 60 ~/ interval;
     intervalCount = slotsPerHour * 24;
+
     gridService = GridHelper(
-      incrementRowDate: (int rowIndex) =>
-          startDate.addMinutes((60 ~/ slotsPerHour) * rowIndex),
+      incrementRowDate: (int rowIndex) {
+        // Use January 1st as base date for timebar to avoid DST issues
+        final baseDate = DateTime(DateTime.now().year, 1, 1);
+        final minutes = (60 ~/ slotsPerHour) * rowIndex;
+        return baseDate.add(Duration(minutes: minutes));
+      },
     );
     super.initState();
   }

@@ -52,7 +52,7 @@ class _MyAppState extends State<MyApp> {
               locale: 'ja_JP'*/
           ),
           dayViewSettings: const DayViewSettings(
-            intervalMinute: IntervalMinute.min10,
+            intervalMinute: IntervalMinute.min60,
             headerStyleName: 'dayStyle3',
             showMinutes: true,
           ),

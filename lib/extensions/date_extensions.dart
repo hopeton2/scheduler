@@ -203,14 +203,10 @@ extension DateExtension on DateTime {
     if (endsSameDayOnLastDay) {
       result = result.subMilliseconds(1);
     }
-
     return result;
   }
 
   DateTime incMinutes(int delta) {
-    //return addMinutes(delta, true);
-    // return DateTime.utc(year, month, day, hour, minute + delta, second, millisecond, microsecond);
-    // return addDuration(Duration(minutes: delta));
     var result = addMinutes(delta, true);
     var totMinutes = result.totalMinutes;
     var diff = totMinutes - totalMinutes;
@@ -218,7 +214,6 @@ extension DateExtension on DateTime {
       result = DateTime.utc(year, month, day, hour, minute + delta, second,
           millisecond, microsecond);
     }
-
     return result;
   }
 
@@ -306,5 +301,15 @@ extension DateTimeHelpers on DateTime {
     return DateTime.fromMillisecondsSinceEpoch(
         ((millis + durationInMillis ~/ 2) ~/ durationInMillis) *
             durationInMillis);
+  }
+
+  DateTime add(Duration duration) {
+    return DateTime.fromMillisecondsSinceEpoch(
+        millisecondsSinceEpoch + duration.inMilliseconds);
+  }
+
+  DateTime subtract(Duration duration) {
+    return DateTime.fromMillisecondsSinceEpoch(
+        millisecondsSinceEpoch - duration.inMilliseconds);
   }
 }
