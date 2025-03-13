@@ -68,6 +68,7 @@ class SchedulerSettings with Diagnosticable {
     this.currentTimeIndicatorAnimationSpeed = 250,
     this.navigationScroll = true,
     this.showFloatingAppointmentButton = true,
+    
   }) : assert(firstDayOfWeek >= 1 && firstDayOfWeek <= 7);
 
   Duration get dayDuration {

@@ -10,7 +10,7 @@ const kViewDayCaption  = 'DAY';
 const kViewWeekCaption  = 'WEEK';
 const kViewWorkWeekCaption  = 'WORK WEEK';
 const kViewMonthCaption = 'MONTH';
-const kViewTimelineDayCaption = 'TIMELINE DAY';
+const kViewTimelineDayCaption = 'TIMELINE';
 const kViewTimelineWeekCaption = 'TIMELINE WEEK';
 const kViewTimelineWorkWeekCaption = 'TIMELINE WORK WEEK';
 const kViewTimelineMonthCaption = 'TIMELINE MONTH';
@@ -26,10 +26,10 @@ const kViewTypes = <CalendarViewType>[
   CalendarViewType.workWeek,
   CalendarViewType.month,
   CalendarViewType.timelineDay,
-  CalendarViewType.timelineWeek,
-  CalendarViewType.timelineWorkWeek,
-  CalendarViewType.timelineMonth,
-  CalendarViewType.quarter,
+ /*  CalendarViewType.timelineWeek, */
+ /*  CalendarViewType.timelineWorkWeek, */
+ /*  CalendarViewType.timelineMonth, */
+ /*  CalendarViewType.quarter, */
   CalendarViewType.year,
   CalendarViewType.agenda,
 ];
@@ -40,10 +40,10 @@ const kViewCaptions = <String>[
   kViewWorkWeekCaption,
   kViewMonthCaption,
   kViewTimelineDayCaption,
-  kViewTimelineWeekCaption,
-  kViewTimelineWorkWeekCaption,
-  kViewTimelineMonthCaption,
-  kViewTimelineQuarterCaption,
+ /*  kViewTimelineWeekCaption, */
+ /*  kViewTimelineWorkWeekCaption, */
+ /*  kViewTimelineMonthCaption, */
+ /*  kViewTimelineQuarterCaption, */
   kViewYearCaption,
   kViewAgendaCaption,
 ];

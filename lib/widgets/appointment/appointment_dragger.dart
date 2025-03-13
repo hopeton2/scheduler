@@ -15,13 +15,13 @@ class AppointmentDragger extends StatefulWidget {
   final Widget child;
   final AppointmentViewBuilder viewBuilder;
   const AppointmentDragger({
-    Key? key,
+    super.key,
     required this.child,
     required this.viewBuilder,
     required this.orientation,
     required this.appointmentItem,
     required this.appointmentRenderService,
-  }) : super(key: key);
+  });
 
   @override
   _AppointmentDraggerState createState() => _AppointmentDraggerState();
@@ -31,7 +31,6 @@ class _AppointmentDraggerState extends State<AppointmentDragger> {
   Scheduler scheduler = SchedulerService.instance.scheduler;
   Offset startingPosition = Offset.zero;
 
-  
   @override
   Widget build(BuildContext context) {
     Offset dragDelta = const Offset(0, 0);
@@ -42,7 +41,7 @@ class _AppointmentDraggerState extends State<AppointmentDragger> {
       },
       child: LongPressDraggableEx<Appointment>(
         allowDragGesture: () => false,
-        delay: const Duration(), // scheduler.appointmentSettings.dragDelay,
+        delay: Duration.zero, // scheduler.appointmentSettings.dragDelay,
         onDragStarted: () {
           AppointmentDragService()
               .beginDrag(widget.appointmentItem.appointment);
@@ -67,24 +66,35 @@ class _AppointmentDraggerState extends State<AppointmentDragger> {
                 var isAllDay = appointment.isAllDay;
                 var allDayRect = viewService.allDayRect;
                 if (allDayRect != null) {
-                 if (!isAllDay && (dragDelta.dy + widget.appointmentItem.top) < 0) {
+                  if (!isAllDay &&
+                      (dragDelta.dy + widget.appointmentItem.top) < 0) {
                     isAllDay = true;
                     dragDelta = Offset(dragDelta.dx, 0);
                     widget.appointmentItem.top = 1;
                     renderService = viewService.allDayRenderService!;
-                  } else if (isAllDay && (dragDelta.dy + widget.appointmentItem.top) > allDayRect.height) {
-                    var allDayOffset = allDayRect.height - widget.appointmentItem.top;
-                    dragDelta = Offset(dragDelta.dx, dragDelta.dy - allDayOffset);
+                  } else if (isAllDay &&
+                      (dragDelta.dy + widget.appointmentItem.top) >
+                          allDayRect.height) {
+                    var allDayOffset =
+                        allDayRect.height - widget.appointmentItem.top;
+                    dragDelta =
+                        Offset(dragDelta.dx, dragDelta.dy - allDayOffset);
                     isAllDay = false;
                     renderService = viewService.allDayHostRenderService!;
                   }
                 }
-                List newDates = renderService.datesOfPosChange(widget.appointmentItem, dragDelta);
-                scheduler.dataSource!.rescheduleAppointment(appointment, newDates[0], newDates[1], isAllDay);
+                List newDates = renderService.datesOfPosChange(
+                    widget.appointmentItem, dragDelta);
+                scheduler.dataSource!.rescheduleAppointment(
+                    appointment, newDates[0], newDates[1], isAllDay);
               } else {
-                var dragSizeDirection = appointmentDragService.dragSizeDirection;
-                List newDates = widget.appointmentRenderService.datesOfSizeChange(widget.appointmentItem, dragDelta, dragSizeDirection);
-                scheduler.dataSource!.rescheduleAppointment(appointment,newDates[0], newDates[1], appointment.isAllDay);
+                var dragSizeDirection =
+                    appointmentDragService.dragSizeDirection;
+                List newDates = widget.appointmentRenderService
+                    .datesOfSizeChange(
+                        widget.appointmentItem, dragDelta, dragSizeDirection);
+                scheduler.dataSource!.rescheduleAppointment(appointment,
+                    newDates[0], newDates[1], appointment.isAllDay);
               }
             }
           } else {

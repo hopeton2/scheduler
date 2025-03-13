@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:scheduler/common/scheduler_view_helper.dart';
-import 'package:scheduler/widgets/appointment_editor/appointment_editor.dart';
+import 'package:scheduler/widgets/appointment/appointment_editor.dart';
 import 'package:scheduler/scheduler.dart';
 import 'package:scheduler/services/scheduler_service.dart';
 

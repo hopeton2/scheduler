@@ -6,6 +6,7 @@ import 'package:scheduler/extensions/date_extensions.dart';
 import 'package:scheduler/scheduler.dart';
 import 'package:scheduler/services/appointment_render_service.dart';
 import 'package:scheduler/services/scheduler_service.dart';
+import 'package:scheduler/services/view_navigation_service.dart';
 import 'package:scheduler/time_slot.dart';
 import 'package:dart_date/dart_date.dart';
 import 'package:scheduler/widgets/current_time_indicator.dart';
@@ -90,8 +91,8 @@ class EventGridState extends State<EventGrid> {
   final List<TimeSlot> timeSlots = [];
   final Scheduler scheduler = SchedulerService.instance.scheduler;
   final SchedulerDataSource dataSource = SchedulerService.instance.scheduler.dataSource!;
-  late final scrollController = widget.scrollController ?? ScrollController(initialScrollOffset: Scheduler.currentScrollPos.dx == 0 ? 
-     Scheduler.currentScrollPos.dy : Scheduler.currentScrollPos.dx);
+  late final scrollController = widget.scrollController ?? ScrollController(initialScrollOffset: widget.orientation == Axis.vertical ? 
+     ViewNavigationService.instance.lastScrollPos.dy : ViewNavigationService.instance.lastScrollPos.dx);
 
   @override
   void initState() {
@@ -202,7 +203,7 @@ class EventGridState extends State<EventGrid> {
     }
 
     return DragTarget(
-      onAccept: (data) {
+      onAcceptWithDetails: (data) {
         //debugPrint(widget.intervalType.toString() + "  " + data.toString());
       },
       builder: (BuildContext context, List<Object?> candidateData, List<dynamic> rejectedData) =>
@@ -210,11 +211,12 @@ class EventGridState extends State<EventGrid> {
         children: [
           NotificationListener<ScrollUpdateNotification>(
             onNotification: (notification) {
-              //if (schedulerService.scrollController == scrollController) {
-                 var position = notification.metrics.pixels;
-                 var positionOffset = notification.metrics.axis == Axis.vertical ? Offset(0, position) : Offset(position, 0);
-                 scheduler.setSchedulerScrollPos(positionOffset);
-              //}
+              //if (scrollController != schedulerService.scrollController) return false;
+              var position = notification.metrics.pixels;
+              var positionOffset = notification.metrics.axis == Axis.vertical 
+                  ? Offset(0, position) 
+                  : Offset(position, 0);
+              scheduler.setSchedulerScrollPos(positionOffset);
               return false;
             },
             child: widget.gridBuilder != null ? widget.gridBuilder!(context) : SchedulerGrid(

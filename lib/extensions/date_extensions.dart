@@ -93,13 +93,13 @@ extension DateExtension on DateTime {
   }
 
   int getDifferenceInCalendarDays(DateTime other) =>
-      other.startOfDay.differenceInDays(startOfDay);
+      (other.startOfDay.difference(startOfDay).inHours / 24).round();
   int getDifferenceInCalendarWeeks(DateTime other) => other.getWeek - getWeek;
   int getDifferenceInCalendarMonths(DateTime other) =>
       other.getMonth - getMonth;
 
   DateTime getEndOfDay() {
-    return startOfDay.addDays(1).subMilliseconds(1);
+    return startOfDay.endOfDay; // .addDays(1).subMilliseconds(1);
   }
 
   bool isBetween(DateTime start, DateTime end) {
@@ -290,6 +290,15 @@ extension DateExtension on DateTime {
     }
 
     return result;
+  }
+
+  bool isSameOrEqual(DateTime other) {
+    return year == other.year &&
+        month == other.month &&
+        day == other.day &&
+        hour == other.hour &&
+        minute == other.minute &&
+        timeZoneOffset == other.timeZoneOffset;
   }
 }
 

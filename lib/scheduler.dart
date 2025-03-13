@@ -29,9 +29,9 @@ import 'package:scheduler/themes/month_view_theme.dart';
 import 'package:scheduler/time_slot.dart';
 import 'package:scheduler/views/scheduler_view.dart';
 import 'package:scheduler/widgets/date_header.dart';
-import 'package:scheduler/widgets/open_border.dart';
 import 'package:scheduler/widgets/scrollable_stack.dart';
 import 'package:scheduler/widgets/timeslot_cell.dart';
+import 'package:scheduler/widgets/view_navigator/button_navigation_ex.dart';
 import 'package:uuid/uuid.dart';
 
 import 'common/scheduler_view_helper.dart';
@@ -52,7 +52,6 @@ import 'widgets/event_grid/event_grid.dart';
 import 'widgets/scheduler_grid/cell_painter.dart';
 import 'widgets/scheduler_grid/grid_cell.dart';
 import 'widgets/scheduler_grid/grid_helper.dart';
-import 'widgets/scheduler_grid/scheduler_grid.dart';
 import 'widgets/scheduler_grid/timebar/timebar_cell.dart';
 import 'widgets/virtual_page_view/virtual_page_view.dart';
 import 'widgets/view_navigator/button_navigation.dart';
@@ -88,7 +87,7 @@ class JzScheduler extends StatefulWidget {
   final SchedulerController? controller;
   final DateTime? initialDate;
   final Function(Appointment)? onAppointmentTap;
-  final FloatingActionButton? customFloatingActionButton;
+  final FloatingActionButton? customCreateEventActionButton;
 
   JzScheduler({
     Key? key,
@@ -105,7 +104,7 @@ class JzScheduler extends StatefulWidget {
     this.recurrenceSettings = const RecurrenceSettings(),
     this.appointmentEditorSettings = const AppointmentEditorSettings(),
     this.onAppointmentTap,
-    this.customFloatingActionButton,
+    this.customCreateEventActionButton,
   }) : super(key: key) {
     ViewNavigationService().viewType = viewType;
   }
@@ -187,7 +186,7 @@ class Scheduler extends InheritedWidget {
   // Add appointment tap callback
   final Function(Appointment)? onAppointmentTap;
 
-  static Offset currentScrollPos = Offset.zero;
+  //static Offset currentScrollPos = Offset.zero;
 
   Scheduler({
     Key? key,
@@ -227,16 +226,8 @@ class Scheduler extends InheritedWidget {
   }
 
   void setSchedulerScrollPos(Offset value) {
+    ViewNavigationService.instance.lastScrollPos = value;
     schedulerScrollPosNotify.value = value;
-    currentScrollPos = value;
-  }
-
-  bool _positionInitialized = false;
-  void initializeSchedulerScrollPos(Offset value) {
-    if (!_positionInitialized) {
-      _positionInitialized = true;
-      setSchedulerScrollPos(value);
-    }
   }
 
   static Scheduler of(BuildContext context) {
@@ -250,18 +241,6 @@ class Scheduler extends InheritedWidget {
 
   void dispose() {
     _timer.cancel();
-  }
-
-  // Add method to handle appointment tap
-  void handleAppointmentTap(Appointment appointment) {
-    if (onAppointmentTap != null) {
-      onAppointmentTap!(appointment);
-    }
-  }
-
-  // Method to create a new appointment
-  void createNewAppointment(BuildContext context) {
-    controller.createNewAppointment(context);
   }
 }
 
@@ -286,15 +265,12 @@ class _SchedulerLayout extends StatelessWidget {
             ),
           ],
         ),
-        floatingActionButton: scheduler
-                .schedulerSettings.showFloatingAppointmentButton
-            ? scheduler.customFloatingActionButton ??
+        floatingActionButton: scheduler.schedulerSettings.showFloatingAppointmentButton
+            ? scheduler.customCreateEventActionButton ??
                 FloatingActionButton(
-                  tooltip:
-                      scheduler.appointmentEditorSettings.newAppointmentTitle,
+                  tooltip: scheduler.appointmentEditorSettings.newAppointmentTitle,
                   child: const Icon(Icons.add),
-                  onPressed: () =>
-                      Scheduler.of(context).createNewAppointment(context),
+                  onPressed: () => schedulerService.scheduler.controller.createNewAppointment(context),
                 )
             : null,
       ),

@@ -11,7 +11,7 @@ typedef SchedulerViewBuilder = Widget Function(
 class SchedulerView extends StatefulWidget {
   final SchedulerViewBuilder viewBuilder;
   final Color? backgroundColor;
-  const SchedulerView({Key? key, required this.viewBuilder, this.backgroundColor}) : super(key: key);
+  const SchedulerView({super.key, required this.viewBuilder, this.backgroundColor});
 
   @override
   _SchedulerViewState createState() => _SchedulerViewState();
@@ -24,10 +24,10 @@ class _SchedulerViewState extends State<SchedulerView> {
     Intl.defaultLocale = schedulerSettings.locale;
 
     return Material(
-      child: RawKeyboardListener(
+      child: KeyboardListener(
         autofocus: true,
         focusNode: FocusNode(),
-        onKey: handleKeyPress,
+        onKeyEvent: handleKeyPress,
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) => Container(
             color: widget.backgroundColor ?? schedulerSettings.getBackgroundColor(context),
@@ -38,10 +38,10 @@ class _SchedulerViewState extends State<SchedulerView> {
     );
   }
 
-  handleKeyPress(RawKeyEvent event) {
-    if (event.isKeyPressed(LogicalKeyboardKey.delete)){
+  handleKeyPress(KeyEvent event) {
+    if (event.logicalKey == LogicalKeyboardKey.delete){
       AppointmentService.instance.deleteSelectedAppointment();
-    } else if (event.isKeyPressed(LogicalKeyboardKey.escape)){
+    } else if (event.logicalKey == LogicalKeyboardKey.escape){
       AppointmentDragService().cancelDrag();
     }
   }

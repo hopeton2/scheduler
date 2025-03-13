@@ -12,7 +12,6 @@ import '../../widgets/event_grid/event_grid.dart';
 import '../../widgets/scheduler_grid/grid_helper.dart';
 
 class AlldayEventGrid extends StatefulWidget {
-  final Color backgroundColor;
   final int colCount;
   final DateTime startDate;
   final BoxConstraints constraints;
@@ -21,7 +20,6 @@ class AlldayEventGrid extends StatefulWidget {
 
   const AlldayEventGrid({
     super.key,
-    required this.backgroundColor,
     required this.colCount,
     required this.startDate,
     required this.constraints,
@@ -51,7 +49,7 @@ class AlldayEventGridState extends State<AlldayEventGrid> {
       viewService.allDayRect = uiService.getBounds(context);
     });
     return Container(
-      color: widget.backgroundColor,
+      color: schedulerService.scheduler.dayViewSettings.allDayBackgroundColor,
       height: 100,
       child: EventGrid(
         key: UniqueKey(),

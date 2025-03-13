@@ -6,6 +6,7 @@ import 'package:scheduler/extensions/date_extensions.dart';
 import 'package:scheduler/scheduler.dart';
 
 import '../common/scheduler_view_helper.dart';
+import '../services/view_navigation_service.dart';
 import 'dotted_line.dart';
 
 class CurrentTimeIndicator extends StatelessWidget {
@@ -50,7 +51,7 @@ class CurrentTimeIndicator extends StatelessWidget {
         valueListenable: scheduler.schedulerScrollPosNotify,
         builder: (BuildContext context, Offset scrollPos, Widget? child) =>
             Positioned(
-          top: getPosition(value.totalMinutes) - 6 - Scheduler.currentScrollPos.dy,
+          top: getPosition(value.totalMinutes) - 6 - ViewNavigationService.instance.lastScrollPos.dy,
           left: startPos,
           child: SizedBox(
             width: max(0, activeLength + activePos - startPos),

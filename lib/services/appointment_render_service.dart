@@ -260,6 +260,15 @@ class AppointmentRenderService with EventLayoutMixin {
 
     return result;
   }
+
+  void scrollAllAppointments(Offset positionOffset) {
+    var dataSource = SchedulerService.instance.scheduler.dataSource!;
+    var visibleItems = dataSource.visibleAppointmentItems;
+    
+    for (AppointmentItem appointmentItem in visibleItems) {
+      scrollAppointment(appointmentItem, positionOffset);
+    }
+  }
 }
 
 class AppointmentGeometry {

@@ -54,13 +54,15 @@ class _VirtualPageViewState extends State<VirtualPageView> with IntervalConfig {
   subscribeToNavServiceScrolling() {
     Duration duration = const Duration(milliseconds: 500);
     Curve curve = Curves.decelerate;
-    viewNavigationService.scrollNextPageNotify.addListener(() => {
-          if (_pageController.positions.isNotEmpty)
-            _pageController.nextPage(duration: duration, curve: curve),
+    viewNavigationService.scrollNextPageNotify.addListener(() {
+          if (_pageController.positions.isNotEmpty) {
+            _pageController.nextPage(duration: duration, curve: curve);
+          }
         });
-    viewNavigationService.scrollPreviousPageNotify.addListener(() => {
-          if (_pageController.positions.isNotEmpty)
-            _pageController.previousPage(duration: duration, curve: curve),
+    viewNavigationService.scrollPreviousPageNotify.addListener(() {
+          if (_pageController.positions.isNotEmpty) {
+            _pageController.previousPage(duration: duration, curve: curve);
+          }
         });
     _pageController.addListener(() {
       if (_pageController.positions.isNotEmpty) {
@@ -70,9 +72,9 @@ class _VirtualPageViewState extends State<VirtualPageView> with IntervalConfig {
             DateTime date = calcPageDate(currentPage);
             viewService.scrollSnapback.value = date;
             debugPrint("page not changed!");
-            setState(() {
+            //setState(() {
               
-            });
+            //});
           } else {
             currentPage = newPage;
           }

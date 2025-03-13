@@ -260,8 +260,8 @@ class _AppointmentWidgetState extends State<AppointmentWidget>
                 _launchAppointmentEditor(context);
 
                 // Then call the handler
-                final scheduler = Scheduler.of(context);
-                scheduler.handleAppointmentTap(appointment);
+                //final scheduler = Scheduler.of(context);
+                //scheduler.handleAppointmentTap(appointment);
               }
 
               // Reset drag flag after handling event
@@ -313,7 +313,7 @@ class _AppointmentWidgetState extends State<AppointmentWidget>
       valueListenable: scheduler.schedulerScrollPosNotify,
       builder: (BuildContext context, Offset scrollOffset, Widget? child) {
         widget.appointmentRenderService.scrollAppointment(
-            widget.appointmentItem, Scheduler.currentScrollPos);
+            widget.appointmentItem, ViewNavigationService.instance.lastScrollPos);
 
         return Positioned(
           top: widget.appointmentItem.rect.top,

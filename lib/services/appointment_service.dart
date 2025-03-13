@@ -17,7 +17,7 @@ class AppointmentService with ChangeNotifier {
   DateTime visibleStart = DateTime.now().startOfDay;
   DateTime visibleEnd = DateTime.now().endOfDay;
   get selectedAppointment => _selectedAppointment;
-  get dataSource => SchedulerService.instance.scheduler.scheduler.dataSource;
+  get dataSource => SchedulerService.instance.scheduler.dataSource;
 
   final _appointmentSelectedSubject = BehaviorSubject<Appointment>();
   ValueStream<Appointment> get $appointmentSelected =>
@@ -105,6 +105,7 @@ class AppointmentService with ChangeNotifier {
           appointment: appointment,
           startDate: appointment.startDate,
           endDate: appointment.endDate,
+          isRecurrence: false,
         )
       ];
     }

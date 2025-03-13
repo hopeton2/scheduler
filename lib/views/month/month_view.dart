@@ -24,6 +24,7 @@ class _MonthViewState extends State<MonthView> with IntervalConfig {
   void initState() {
     schedulerSettings = scheduler.schedulerSettings;
     settings = scheduler.monthViewSettings;
+    schedulerService.scheduler.setSchedulerScrollPos(Offset.zero);
     gridHelper = GridHelper(
       incrementRowDate: (int rowIndex) => pageDate.startOfDay.addDays(
         rowIndex * DateTime.daysPerWeek,

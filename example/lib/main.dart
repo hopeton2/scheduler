@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:scheduler/extensions/color_extensions.dart';
 import 'package:scheduler/scheduler.dart';
 
+import 'app_month_view_theme.dart';
+
 
 Future<void> main() async {
   //debugRepaintRainbowEnabled = true;

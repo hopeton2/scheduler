@@ -7,7 +7,7 @@ import '../../services/services.dart';
 class PopupNavigationEx extends StatefulWidget {
   final Function(CalendarViewType viewType) selectView;
   final bool showSelection;
-  const PopupNavigationEx({Key? key, required this.selectView, this.showSelection = true}) : super(key: key);
+  const PopupNavigationEx({super.key, required this.selectView, this.showSelection = true});
 
   @override
   _PopupNavigationExState createState() => _PopupNavigationExState();

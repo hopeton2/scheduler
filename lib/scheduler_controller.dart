@@ -1,3 +1,4 @@
+import 'package:dart_date/dart_date.dart';
 import 'package:scheduler/extensions/date_extensions.dart';
 import 'package:scheduler/scheduler.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class SchedulerController extends ChangeNotifier {
   bool canSelectAndJumpToDayView = false;
 
   set startDate(DateTime value) {
-    if (_startDate != value) {
+    if (!_startDate.isSameOrEqual(value)) {
       _startDate = value;
       startDateChangeNotify.value = value;
       notifyListeners();
@@ -106,6 +107,10 @@ class SchedulerController extends ChangeNotifier {
   }
 
   selectDates(List<DateTime> dates) {
+    if (dates.length == _selectedDates.length &&
+        dates.every((date) => _selectedDates.any((selectedDate) => selectedDate.isSameOrEqual(date)))) {
+      return;
+    }
     _selectedDates.clear();
     _selectedDates.addAll(dates);
     selectedDatesChangeNotify.value = _selectedDates;
@@ -131,25 +136,10 @@ class SchedulerController extends ChangeNotifier {
       now.minute,
     ).roundToNearest(const Duration(minutes: 15));
 
-    // If the time is now in the past (because selected date is today but time has passed),
-    // or if we're near the end of the day, move to next reasonable time
-    final DateTime currentDateTime = DateTime.now();
-    if (startTime.isBefore(currentDateTime) || now.hour >= 23) {
-      // If it's near the end of the day, start on the next day at work start time
-      if (now.hour >= 21) {
-        startTime = DateTime(
-          currentDate.year,
-          currentDate.month,
-          currentDate.day,
-          schedulerSettings.workDayStartTime.hour,
-          schedulerSettings.workDayStartTime.minute,
-        ).add(const Duration(days: 1));
-      } else {
-        // Otherwise, start at the next reasonable time (now + 15 minutes)
-        startTime = currentDateTime
-            .roundToNearest(const Duration(minutes: 15))
-            .add(const Duration(minutes: 15));
-      }
+    // If the calculated start time is in the past, set it to the next 15-minute interval
+    if (startTime.isBefore(now)) {
+      startTime = now.roundToNearest(const Duration(minutes: 15))
+          .add(const Duration(minutes: 15));
     }
 
     // Set end time to 1 hour after start

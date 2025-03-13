@@ -28,7 +28,7 @@ class AppointmentSettings {
     this.builder,
     this.hapticFeedbackOnLongPressSelection = true,
     this.selectionDelay = kLongPressTimeout,
-    this.dragDelay =  kLongPressTimeout,
+    this.dragDelay = kLongPressTimeout,
     this.animationDuration = const Duration(seconds: 1),
     this.defaultDuration = const Duration(minutes: 30),
   });

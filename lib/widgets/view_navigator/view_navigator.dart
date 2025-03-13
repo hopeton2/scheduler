@@ -1,8 +1,8 @@
-part of scheduler;
+part of '../../scheduler.dart';
 
 class ViewNavigator extends StatefulWidget {
   final bool isDropdown;
-  const ViewNavigator({Key? key, this.isDropdown = true}) : super(key: key);
+  const ViewNavigator({super.key, this.isDropdown = true});
 
   @override
   ViewNavigatorState createState() => ViewNavigatorState();
@@ -52,6 +52,7 @@ class ViewNavigatorState extends State<ViewNavigator> with IntervalConfig {
     GlobalKey dateSelectionKey = GlobalKey();
 
     return Container(
+      padding: const EdgeInsets.only(top: 5.0, bottom: 5.0),
       decoration: BoxDecoration(
         border: Border(
           bottom: BorderSide(width: 0.5, color: scheduler.schedulerSettings.getDividerLineColor(context)),
@@ -92,10 +93,10 @@ class ViewNavigatorState extends State<ViewNavigator> with IntervalConfig {
             onPressed: () => selectDate(),
           ),
         ]),
-        if (widget.isDropdown)
+        if (!widget.isDropdown)
           PopupNavigationEx(selectView: selectView, showSelection: !SchedulerViewHelper.isSmallDevice(context))
         else
-          ButtonNavigation(selectView: selectView),
+          ButtonNavigationEx(selectView: selectView),
       ]),
     );
   }

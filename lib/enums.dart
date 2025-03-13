@@ -78,3 +78,11 @@ enum RecurrenceType {
   monthly,
   yearly,
 }
+
+enum NavigationState {
+  idle,
+  forward,
+  backward,
+  dragging,
+  jump,
+}

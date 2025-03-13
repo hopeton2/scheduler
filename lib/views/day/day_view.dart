@@ -73,7 +73,6 @@ class _DayViewState extends State<DayView> with IntervalConfig {
             ),
           ),
           AlldayEventGrid(
-            backgroundColor: Colors.black45,
             colCount: widget.dayCount,
             startDate: pageDate,
             constraints: constraints,
