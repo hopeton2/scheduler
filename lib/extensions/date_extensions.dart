@@ -98,8 +98,12 @@ extension DateExtension on DateTime {
   int getDifferenceInCalendarMonths(DateTime other) =>
       other.getMonth - getMonth;
 
+  /// Returns the last millisecond of the day.
+  ///
+  /// This method is used because [DateTime.endOfDay] does not work reliably
+  /// on the day when the clock changes to daylight saving time.
   DateTime getEndOfDay() {
-    return startOfDay.endOfDay; // .addDays(1).subMilliseconds(1);
+    return startOfDay.addDays(1).startOfDay.subMilliseconds(1);
   }
 
   bool isBetween(DateTime start, DateTime end) {
